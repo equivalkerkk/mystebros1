@@ -278,11 +278,11 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
   };
 
   const NOWPAYMENTS_API_KEY = 'WDTQ64V-WMN4M4M-JNCK2PM-1QWZYBH';
-  // For production deployment, use direct API URL (Vite proxy only works in dev)
+  // Use backend proxy for production
   const IS_DEVELOPMENT = window.location.hostname === 'localhost';
   const BASE_URL = IS_DEVELOPMENT 
-    ? '/nowpayments-api/v1'  // Dev: Use Vite proxy
-    : 'https://api.nowpayments.io/v1';  // Production: Direct API
+    ? 'http://localhost:8000/api/nowpayments'  // Dev: Local backend proxy
+    : 'https://rektnow.wtf/api/nowpayments';  // Production: Backend proxy
 
   const handlePayClick = () => {
     setShowCryptoSelect(true);
@@ -431,10 +431,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
         console.log('Estimate URL:', estimateUrl);
         
         const estimateResponse = await fetch(estimateUrl, {
-          method: 'GET',
-          headers: {
-            'x-api-key': NOWPAYMENTS_API_KEY,
-          },
+          method: 'GET'
         });
 
         console.log('Estimate response status:', estimateResponse.status);
@@ -469,7 +466,6 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
       const paymentResponse = await fetch(`${BASE_URL}/payment`, {
         method: 'POST',
         headers: {
-          'x-api-key': NOWPAYMENTS_API_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(paymentBody),
