@@ -1,5 +1,7 @@
 // Backend API Configuration
-const API_BASE_URL = 'http://localhost:8000/auth';
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8000/auth'
+  : 'https://rektnow.wtf/auth';
 
 interface AuthResponse {
   success: boolean;
