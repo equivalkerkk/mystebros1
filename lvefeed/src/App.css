@@ -1,0 +1,115 @@
+/* Glass effect for containers */
+.glass-effect {
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(107, 114, 128, 0.3);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Pulse animation for live indicator */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Spin animation for loading */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Rainbow glow effects for footer */
+.glow-sm {
+  background: linear-gradient(45deg, #0ea5e9, #3b82f6);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  animation: glowSm 3s ease-in-out infinite;
+}
+
+.glow-rep {
+  background: linear-gradient(45deg, #6366f1, #8b5cf6);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  animation: glowRep 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.glow-bot {
+  background: linear-gradient(45deg, #ec4899, #06b6d4);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  animation: glowBot 3s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+@keyframes glowSm {
+  0%, 66.66%, 100% {
+    text-shadow: none;
+  }
+  33.33% {
+    text-shadow: 0 0 3px #00d4ff, 0 0 6px rgba(0, 212, 255, 0.4), 0 0 9px rgba(0, 212, 255, 0.2);
+  }
+}
+
+@keyframes glowRep {
+  0%, 66.66%, 100% {
+    text-shadow: none;
+  }
+  33.33% {
+    text-shadow: 0 0 3px #6366f1, 0 0 6px rgba(99, 102, 241, 0.4), 0 0 9px rgba(99, 102, 241, 0.2);
+  }
+}
+
+@keyframes glowBot {
+  0%, 66.66%, 100% {
+    text-shadow: none;
+  }
+  33.33% {
+    text-shadow: 0 0 3px #ec4899, 0 0 6px rgba(236, 72, 153, 0.4), 0 0 9px rgba(236, 72, 153, 0.2);
+  }
+} 
+
+/* Shimmer animation for buttons */
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Float animation for particles */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.1);
+    opacity: 1;
+  }
+} 

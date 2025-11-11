@@ -1,0 +1,92 @@
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0d0d0d;
+  color: #f3f4f6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glass Effect */
+.glass-effect {
+  background: rgba(17, 24, 39, 0.3);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes glowSm {
+  0%, 66.66%, 100% {
+    text-shadow: none;
+  }
+  33.33% {
+    text-shadow: 0 0 3px #00d4ff, 0 0 6px rgba(0, 212, 255, 0.4), 0 0 9px rgba(0, 212, 255, 0.2);
+  }
+}
+
+@keyframes glowRep {
+  0%, 66.66%, 100% {
+    text-shadow: none;
+  }
+  33.33% {
+    text-shadow: 0 0 3px #6366f1, 0 0 6px rgba(99, 102, 241, 0.4), 0 0 9px rgba(99, 102, 241, 0.2);
+  }
+}
+
+@keyframes glowBot {
+  0%, 66.66%, 100% {
+    text-shadow: none;
+  }
+  33.33% {
+    text-shadow: 0 0 3px #ec4899, 0 0 6px rgba(236, 72, 153, 0.4), 0 0 9px rgba(236, 72, 153, 0.2);
+  }
+}
+
+/* Utility Classes */
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+.glow-sm {
+  animation: glowSm 3s ease-in-out infinite;
+}
+
+.glow-rep {
+  animation: glowRep 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.glow-bot {
+  animation: glowBot 3s ease-in-out infinite;
+  animation-delay: 2s;
+}
