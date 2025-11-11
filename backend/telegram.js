@@ -58,6 +58,6 @@ ${emoji} <b>Payment Status: ${statusText}</b>
   }
 }
 
-module.exports = {
+export {
   sendPaymentStatusNotification
 };
