@@ -231,7 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
           </div>
         )}
         <a 
-          href="https://t.me/your_telegram" 
+          href="https://t.me/rektnowxd" 
           target="_blank" 
           rel="noopener noreferrer" 
           className="social-widget telegram-widget"
@@ -242,7 +242,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
           <span className="social-text">Telegram</span>
         </a>
         <a 
-          href="https://discord.gg/your_discord" 
+          href="https://discord.gg/JPmz9Kdu2H" 
           target="_blank" 
           rel="noopener noreferrer" 
           className="social-widget discord-widget"
