@@ -1,0 +1,27 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "functions": {
+    "pages/api/create-wallet.ts": {
+      "maxDuration": 10
+    },
+    "pages/api/create-payment.ts": {
+      "maxDuration": 10
+    },
+    "pages/api/callback.ts": {
+      "maxDuration": 10
+    },
+    "pages/api/redirect-payment.ts": {
+    "maxDuration": 10
+    }  
+  },
+  "env": {
+    "PAYGATE_API_URL": "https://api.paygate.to",
+    "PAYGATE_CHECKOUT_URL": "https://checkout.paygate.to",
+    "USDC_WALLET_ADDRESS": "0x02DAbee56F9968CCA289B557Adea079212A5f8f1",
+    "CALLBACK_URL": "https://paynsm-ayyr.vercel.app//api/callback"
+  }
+} 

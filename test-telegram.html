@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telegram Bot Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        button {
+            background: #a855f7;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+        }
+        button:hover {
+            background: #8b5cf6;
+        }
+        .result {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        h2 {
+            color: #a855f7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Telegram Bot Test</h1>
+    
+    <h2>Step 1: Get Chat ID</h2>
+    <p>1. Grubunuza bir mesaj yazın (örn: "test")</p>
+    <p>2. Sonra bu butona basın:</p>
+    <button onclick="getChatId()">Get Chat ID</button>
+    
+    <h2>Step 2: Test Message</h2>
+    <input type="text" id="chatId" placeholder="Chat ID buraya (örn: -1001234567890)">
+    <button onclick="sendTestMessage()">Send Test Message to Group</button>
+    
+    <div id="result" class="result" style="display:none;"></div>
+
+    <script>
+        const BOT_TOKEN = '8376404138:AAFSo4jr52Dvr6l2hswgsTbjDQ28XREMgJs';
+        
+        async function getChatId() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.ok && data.result.length > 0) {
+                    const updates = data.result;
+                    let chatInfo = 'Found Chats:\n\n';
+                    
+                    const chats = new Set();
+                    updates.forEach(update => {
+                        if (update.message && update.message.chat) {
+                            const chat = update.message.chat;
+                            const chatId = chat.id;
+                            const chatTitle = chat.title || chat.first_name || 'Private';
+                            chats.add(`Chat ID: ${chatId}\nTitle: ${chatTitle}\nType: ${chat.type}\n`);
+                        }
+                    });
+                    
+                    chats.forEach(chat => {
+                        chatInfo += chat + '\n---\n';
+                    });
+                    
+                    resultDiv.textContent = chatInfo;
+                    
+                    // Auto-fill the first chat ID
+                    if (updates[0]?.message?.chat?.id) {
+                        document.getElementById('chatId').value = updates[0].message.chat.id;
+                    }
+                } else {
+                    resultDiv.textContent = 'No messages found!\n\n1. Gruba bir mesaj yazın\n2. Tekrar deneyin';
+                }
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function sendTestMessage() {
+            const chatId = document.getElementById('chatId').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!chatId) {
+                alert('Please enter Chat ID first!');
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Sending test message...';
+            
+            try {
+                const message = `
+🔔 <b>TEST MESSAGE</b>
+
+This is a test from RektNow Login Monitor Bot!
+
+If you see this, the bot is working correctly! ✅
+
+━━━━━━━━━━━━━━━━━━━━
+<i>RektNow Mass Report Panel</i>
+                `.trim();
+                
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        parse_mode: 'HTML',
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    resultDiv.textContent = `✅ SUCCESS!
+
+Message sent to group!
+Chat ID: ${chatId}
+
+Check your Telegram group!`;
+                } else {
+                    resultDiv.textContent = `❌ FAILED!
+
+Error: ${data.description}
+
+Make sure:
+1. Bot is added to group
+2. Bot is admin
+3. Chat ID is correct`;
+                }
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

