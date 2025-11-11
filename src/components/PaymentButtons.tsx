@@ -651,7 +651,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
 
       // Generate tracking ID with rektnow.wtf callback
       const paymentTrackingId = `${Date.now()}_${Math.floor(Math.random() * 9000000) + 1000000}`;
-      const callbackUrl = `${window.location.origin}/api/payment-callback?payment=${paymentTrackingId}`;
+      const callbackUrl = `${window.location.origin}/api/paygate-callback?payment=${paymentTrackingId}`;
       const callback = encodeURIComponent(callbackUrl);
 
       // API call to get encoded address using fixed merchant wallet
