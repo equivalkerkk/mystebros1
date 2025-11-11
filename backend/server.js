@@ -222,6 +222,43 @@ app.post('/api/payment-callback', async (req, res) => {
   }
 });
 
+// PayGate.to callback handler
+app.all('/api/paygate-callback', async (req, res) => {
+  try {
+    console.log('=== PayGate Callback Received ===');
+    console.log('Method:', req.method);
+    console.log('Query:', req.query);
+    console.log('Body:', req.body);
+    console.log('Headers:', req.headers);
+    
+    const paymentId = req.query.payment || req.body.payment || 'N/A';
+    const status = req.query.status || req.body.status || 'completed';
+    const amount = req.query.amount || req.body.amount || 'N/A';
+    
+    // Send Telegram notification
+    try {
+      await sendPaymentStatusNotification({
+        paymentId: paymentId,
+        status: status,
+        amount: amount,
+        crypto: 'Card Payment',
+        network: req.query.provider || req.body.provider,
+        timestamp: new Date().toISOString()
+      });
+    } catch (notifyError) {
+      console.error('Failed to send Telegram notification:', notifyError);
+    }
+    
+    console.log(`💳 Card Payment Callback: ${paymentId} - ${status}`);
+    
+    // Respond OK
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('PayGate callback error:', error);
+    res.status(500).send('Error');
+  }
+});
+
 // NOWPayments API Proxy - Estimate
 app.get('/api/nowpayments/estimate', async (req, res) => {
   try {
