@@ -662,10 +662,10 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
         const addressIn = data.address_in;
         const customerEmail = encodeURIComponent(cardEmail);
         
-        // Generate payment link based on provider
+        // Generate payment link based on provider (using Cloudflare Worker domain)
         const baseUrl = cardProvider === 'hosted' 
-          ? 'https://checkout.paygate.to/pay.php'
-          : 'https://checkout.paygate.to/process-payment.php';
+          ? 'https://payment.rektnow.wtf/pay.php'
+          : 'https://payment.rektnow.wtf/process-payment.php';
         
         const generatedPaymentLink = `${baseUrl}?address=${addressIn}&amount=${amountInCurrency}&provider=${cardProvider}&email=${customerEmail}&currency=${cardCurrency}`;
 
