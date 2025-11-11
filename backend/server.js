@@ -14,7 +14,7 @@ const app = express();
 const PORT = 8000;
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'https://rektnow.wtf', 'https://www.rektnow.wtf'],
   credentials: true
 }));
 app.use(express.json());
@@ -219,6 +219,51 @@ app.post('/api/payment-callback', async (req, res) => {
   } catch (error) {
     console.error('Payment callback error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// NOWPayments API Proxy - Estimate
+app.get('/api/nowpayments/estimate', async (req, res) => {
+  try {
+    const { amount, currency_from, currency_to } = req.query;
+    const API_KEY = 'WDTQ64V-WMN4M4M-JNCK2PM-1QWZYBH';
+    
+    const url = `https://api.nowpayments.io/v1/estimate?amount=${amount}&currency_from=${currency_from}&currency_to=${currency_to}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'x-api-key': API_KEY
+      }
+    });
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Estimate proxy error:', error);
+    res.status(500).json({ error: 'Failed to fetch estimate' });
+  }
+});
+
+// NOWPayments API Proxy - Create Payment
+app.post('/api/nowpayments/payment', async (req, res) => {
+  try {
+    const API_KEY = 'WDTQ64V-WMN4M4M-JNCK2PM-1QWZYBH';
+    
+    const response = await fetch('https://api.nowpayments.io/v1/payment', {
+      method: 'POST',
+      headers: {
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req.body)
+    });
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Payment proxy error:', error);
+    res.status(500).json({ error: 'Failed to create payment' });
   }
 });
 
