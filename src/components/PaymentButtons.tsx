@@ -649,9 +649,10 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
         return;
       }
 
-      // Generate tracking ID
-      const payoutTrackingId = `https://paygate.to/payment-link/invoice.php?payment=${Date.now()}_${Math.floor(Math.random() * 9000000) + 1000000}`;
-      const callback = encodeURIComponent(payoutTrackingId);
+      // Generate tracking ID with rektnow.wtf callback
+      const paymentTrackingId = `${Date.now()}_${Math.floor(Math.random() * 9000000) + 1000000}`;
+      const callbackUrl = `${window.location.origin}/api/payment-callback?payment=${paymentTrackingId}`;
+      const callback = encodeURIComponent(callbackUrl);
 
       // API call to get encoded address using fixed merchant wallet
       const response = await fetch(`https://api.paygate.to/control/wallet.php?address=${MERCHANT_WALLET}&callback=${callback}`);
@@ -685,7 +686,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
             crypto: `Card Payment (${cardCurrency})`,
             network: cardProvider,
             address: addressIn,
-            paymentId: payoutTrackingId,
+            paymentId: paymentTrackingId,
             orderDescription: isSingleReportPayment 
               ? `RektNow Single Report - Card Payment`
               : 'RektNow Panel Access - Card Payment',
