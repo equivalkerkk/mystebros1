@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Language } from '../types/translations';
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -14,19 +13,6 @@ interface NavbarProps {
   nameChangeCount?: number;
 }
 
-const languages = [
-  { code: 'en', flag: '🇺🇸', name: 'English' },
-  { code: 'tr', flag: '🇹🇷', name: 'Türkçe' },
-  { code: 'es', flag: '🇪🇸', name: 'Español' },
-  { code: 'fr', flag: '🇫🇷', name: 'Français' },
-  { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
-  { code: 'pt', flag: '🇵🇹', name: 'Português' },
-  { code: 'ru', flag: '🇷🇺', name: 'Русский' },
-  { code: 'ar', flag: '🇸🇦', name: 'العربية' },
-  { code: 'zh', flag: '🇨🇳', name: '中文' },
-  { code: 'hi', flag: '🇮🇳', name: 'हिन्दी' },
-];
-
 export const Navbar: React.FC<NavbarProps> = ({ 
   isAuthenticated, 
   onLoginClick, 
@@ -38,7 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   displayName: propDisplayName,
   nameChangeCount = 0
 }) => {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLiveBansOpen, setIsLiveBansOpen] = useState(false);
