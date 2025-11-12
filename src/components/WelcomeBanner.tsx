@@ -4,13 +4,11 @@ import { useLanguage } from '../context/LanguageContext';
 interface WelcomeBannerProps {
   displayName: string;
   username: string;
-  onUpdateName: () => void;
   isHidden?: boolean;
 }
 
-export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, username, onUpdateName, isHidden = false }) => {
+export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, username, isHidden = false }) => {
   const { t } = useLanguage();
-  const hasChangedName = displayName !== username;
   const [isFirstVisit, setIsFirstVisit] = useState(true);
   
   useEffect(() => {
@@ -56,29 +54,6 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, usern
         }}>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1' }}>
             {t.welcomeHey} <strong style={{ color: '#a855f7' }}>{displayName}</strong>, {isFirstVisit ? t.welcomeFirst : t.welcomeBack}
-            {!hasChangedName && (
-              <>
-                {' '}{t.welcomeChangeName}{' '}
-                <button
-                  onClick={onUpdateName}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#3b82f6',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    padding: 0,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    touchAction: 'manipulation',
-                    display: 'inline',
-                    lineHeight: '1'
-                  }}
-                >
-                  {t.welcomeClickHere}
-                </button>
-              </>
-            )}
           </span>
         </span>
       </div>

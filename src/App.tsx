@@ -205,7 +205,6 @@ function App() {
                     <WelcomeBanner 
                       displayName={displayName}
                       username={username}
-                      onUpdateName={() => setShowUpdateName(true)}
                       isHidden={isScrollingDown}
                     />
                     

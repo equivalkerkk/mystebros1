@@ -194,7 +194,6 @@ Created: ${new Date().toLocaleString()}
             </svg>
           </div>
           <h2 className="auth-modal-title">
-            <img src="/crown.gif" alt="" style={{ width: '32px', height: '32px', marginRight: '8px', verticalAlign: 'middle' }} />
             <span className="rektnow-glow">RektNow</span>
           </h2>
           <p className="auth-modal-subtitle panel-subtitle">Mass Report Panel</p>
