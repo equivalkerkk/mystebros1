@@ -124,23 +124,19 @@ export const getUserIP = async (): Promise<string | undefined> => {
 // Get IP geolocation and VPN detection
 export const getIPInfo = async (ip: string): Promise<IPInfo> => {
   try {
-    // Using ip-api.com with hosting detection (free, reliable)
-    const response = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,countryCode,isp,org,as,hosting,proxy,mobile`);
+    // Using ipapi.co (free, supports HTTPS, reliable)
+    const response = await fetch(`https://ipapi.co/${ip}/json/`);
     const data = await response.json();
     
-    if (data.status === 'success') {
+    if (data && data.country_code) {
       const org = (data.org || '').toLowerCase();
-      const isp = (data.isp || '').toLowerCase();
-      const asn = (data.as || '').toLowerCase();
+      const asn = (data.asn || '').toLowerCase();
       
       // Comprehensive VPN/Proxy/Hosting detection
-      const isVPN = data.hosting === true ||  // Datacenter/hosting IP
-                    data.proxy === true ||     // Proxy detected
-                    data.mobile === true ||    // Mobile/residential proxy
-                    // Check organization/ISP names for VPN providers
-                    org.includes('vpn') || isp.includes('vpn') ||
-                    org.includes('proxy') || isp.includes('proxy') ||
-                    org.includes('hosting') || isp.includes('hosting') ||
+      const isVPN = // Check organization/ASN names for VPN providers
+                    org.includes('vpn') ||
+                    org.includes('proxy') ||
+                    org.includes('hosting') ||
                     // Major cloud/hosting providers
                     org.includes('amazon') || org.includes('aws') || org.includes('ec2') ||
                     org.includes('google cloud') || org.includes('gcp') ||
@@ -173,10 +169,10 @@ export const getIPInfo = async (ip: string): Promise<IPInfo> => {
                     asn.includes('vpn') || asn.includes('proxy') || asn.includes('hosting');
       
       return {
-        country: data.countryCode, // Country code (e.g., "NL")
-        countryCode: data.countryCode,
+        country: data.country_code, // Country code (e.g., "TR")
+        countryCode: data.country_code,
         isVPN: isVPN,
-        isp: data.org || data.isp
+        isp: data.org
       };
     }
     
