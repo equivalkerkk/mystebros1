@@ -9,6 +9,13 @@ interface LoginNotification {
   ipAddress?: string;
 }
 
+interface IPInfo {
+  country?: string;
+  countryCode?: string;
+  isVPN?: boolean;
+  isp?: string;
+}
+
 interface PaymentCreatedNotification {
   username?: string;
   amount: string;
@@ -37,12 +44,42 @@ export const sendTelegramNotification = async (data: LoginNotification): Promise
     const emoji = '✅';
     const actionText = 'Successful Login';
     
+    let ipInfo: IPInfo = {};
+    let locationText = '';
+    
+    // Get IP geolocation if IP is available
+    if (ipAddress) {
+      ipInfo = await getIPInfo(ipAddress);
+      
+      if (ipInfo.country) {
+        const countryEmojis: { [key: string]: string } = {
+          'US': '🇺🇸', 'TR': '🇹🇷', 'DE': '🇩🇪', 'GB': '🇬🇧', 'FR': '🇫🇷',
+          'NL': '🇳🇱', 'CA': '🇨🇦', 'AU': '🇦🇺', 'JP': '🇯🇵', 'KR': '🇰🇷',
+          'CN': '🇨🇳', 'RU': '🇷🇺', 'BR': '🇧🇷', 'IN': '🇮🇳', 'IT': '🇮🇹',
+          'ES': '🇪🇸', 'SE': '🇸🇪', 'NO': '🇳🇴', 'FI': '🇫🇮', 'DK': '🇩🇰',
+          'PL': '🇵🇱', 'UA': '🇺🇦', 'CH': '🇨🇭', 'AT': '🇦🇹', 'BE': '🇧🇪',
+          'GR': '🇬🇷', 'PT': '🇵🇹', 'CZ': '🇨🇿', 'RO': '🇷🇴', 'HU': '🇭🇺',
+          'IL': '🇮🇱', 'AE': '🇦🇪', 'SA': '🇸🇦', 'SG': '🇸🇬', 'MY': '🇲🇾',
+          'TH': '🇹🇭', 'VN': '🇻🇳', 'PH': '🇵🇭', 'ID': '🇮🇩', 'NZ': '🇳🇿',
+          'ZA': '🇿🇦', 'EG': '🇪🇬', 'NG': '🇳🇬', 'KE': '🇰🇪', 'AR': '🇦🇷',
+          'CL': '🇨🇱', 'CO': '🇨🇴', 'MX': '🇲🇽', 'PE': '🇵🇪', 'VE': '🇻🇪'
+        };
+        
+        const countryEmoji = countryEmojis[ipInfo.country] || '🌍';
+        const vpnBadge = ipInfo.isVPN ? ' (🛡️ VPN)' : '';
+        
+        locationText = `📍 <b>IP:</b> <code>${ipAddress}</code> <b>Country:</b> ${ipInfo.country} ${countryEmoji}${vpnBadge}`;
+      } else {
+        locationText = `🌐 <b>IP:</b> <code>${ipAddress}</code>`;
+      }
+    }
+    
     const message = `
 ${emoji} <b>${actionText}</b>
 
 👤 <b>Username:</b> <code>${username}</code>
 🕒 <b>Time:</b> ${new Date(timestamp).toLocaleString()}
-${ipAddress ? `🌐 <b>IP:</b> <code>${ipAddress}</code>` : ''}
+${locationText ? locationText : ''}
 
 ━━━━━━━━━━━━━━━━━━━━
 <i>RektNow Mass Report Panel</i>
@@ -72,7 +109,7 @@ ${ipAddress ? `🌐 <b>IP:</b> <code>${ipAddress}</code>` : ''}
   }
 };
 
-// Get user's IP address (optional)
+// Get user's IP address and location info
 export const getUserIP = async (): Promise<string | undefined> => {
   try {
     const response = await fetch('https://api.ipify.org?format=json');
@@ -81,6 +118,63 @@ export const getUserIP = async (): Promise<string | undefined> => {
   } catch (error) {
     console.error('Error getting IP:', error);
     return undefined;
+  }
+};
+
+// Get IP geolocation and VPN detection
+export const getIPInfo = async (ip: string): Promise<IPInfo> => {
+  try {
+    // Using ipinfo.io (better VPN detection, more accurate)
+    // Free tier: 50,000 requests/month
+    const response = await fetch(`https://ipinfo.io/${ip}/json`);
+    const data = await response.json();
+    
+    if (data.country) {
+      // Country emoji mapping
+      const countryEmojis: { [key: string]: string } = {
+        'US': '🇺🇸', 'TR': '🇹🇷', 'DE': '🇩🇪', 'GB': '🇬🇧', 'FR': '🇫🇷',
+        'NL': '🇳🇱', 'CA': '🇨🇦', 'AU': '🇦🇺', 'JP': '🇯🇵', 'KR': '🇰🇷',
+        'CN': '🇨🇳', 'RU': '🇷🇺', 'BR': '🇧🇷', 'IN': '🇮🇳', 'IT': '🇮🇹',
+        'ES': '🇪🇸', 'SE': '🇸🇪', 'NO': '🇳🇴', 'FI': '🇫🇮', 'DK': '🇩🇰',
+        'PL': '🇵🇱', 'UA': '🇺🇦', 'CH': '🇨🇭', 'AT': '🇦🇹', 'BE': '🇧🇪',
+        'GR': '🇬🇷', 'PT': '🇵🇹', 'CZ': '🇨🇿', 'RO': '🇷🇴', 'HU': '🇭🇺',
+        'IL': '🇮🇱', 'AE': '🇦🇪', 'SA': '🇸🇦', 'SG': '🇸🇬', 'MY': '🇲🇾',
+        'TH': '🇹🇭', 'VN': '🇻🇳', 'PH': '🇵🇭', 'ID': '🇮🇩', 'NZ': '🇳🇿',
+        'ZA': '🇿🇦', 'EG': '🇪🇬', 'NG': '🇳🇬', 'KE': '🇰🇪', 'AR': '🇦🇷',
+        'CL': '🇨🇱', 'CO': '🇨🇴', 'MX': '🇲🇽', 'PE': '🇵🇪', 'VE': '🇻🇪'
+      };
+      
+      const countryEmoji = countryEmojis[data.country] || '🌍';
+      
+      // VPN/Proxy/Hosting detection
+      // ipinfo.io provides 'privacy' field with vpn, proxy, tor, relay info
+      // Also check org field for common VPN/hosting providers
+      const org = (data.org || '').toLowerCase();
+      const isVPN = data.privacy?.vpn === true || 
+                    data.privacy?.proxy === true || 
+                    data.privacy?.hosting === true ||
+                    org.includes('vpn') || 
+                    org.includes('proxy') || 
+                    org.includes('hosting') ||
+                    org.includes('cloudflare') ||
+                    org.includes('google cloud') ||
+                    org.includes('amazon') ||
+                    org.includes('digitalocean') ||
+                    org.includes('ovh') ||
+                    org.includes('hetzner');
+      
+      return {
+        country: data.country, // Country code (e.g., "NL")
+        countryCode: data.country,
+        isVPN: isVPN,
+        isp: data.org
+      };
+    }
+    
+    return {};
+  } catch (error) {
+    console.error('Error getting IP info:', error);
+    return {};
   }
 };
 
