@@ -80,7 +80,7 @@ function App() {
       
       const { token } = JSON.parse(authData);
       
-      const response = await fetch('http://localhost:8000/auth/update-display-name', {
+      const response = await fetch('/auth/update-display-name', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
