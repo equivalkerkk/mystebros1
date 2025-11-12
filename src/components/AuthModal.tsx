@@ -203,48 +203,6 @@ Created: ${new Date().toLocaleString()}
     <div className="auth-modal-overlay">
       <CanvasBackground />
       <div className="auth-modal-container">
-        {/* Language Selector */}
-        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 1000 }}>
-          <div className="language-selector">
-            <button 
-              className="language-select" 
-              onClick={() => setIsLangOpen(!isLangOpen)}
-            >
-              <span className="lang-flag">{currentLang.flag}</span>
-              <svg 
-                className="lang-arrow" 
-                width="14" 
-                height="14" 
-                viewBox="0 0 14 14"
-                style={{ transform: isLangOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-              >
-                <path fill="currentColor" d="M7 10L2 5h10z"/>
-              </svg>
-            </button>
-            {isLangOpen && (
-              <div className="language-dropdown">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    className={`language-option ${language === lang.code ? 'active' : ''}`}
-                    onClick={() => {
-                      setLanguage(lang.code as any);
-                      setIsLangOpen(false);
-                    }}
-                  >
-                    <span className="lang-flag">{lang.flag}</span>
-                    <span className="lang-name">{lang.name}</span>
-                    {language === lang.code && (
-                      <svg className="lang-check" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M13 4L6 11L3 8" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
         <div className="auth-modal-header">
           <div className="auth-modal-icon">
             <svg viewBox="0 0 24 24" fill="currentColor">
