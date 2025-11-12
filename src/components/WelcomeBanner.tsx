@@ -36,17 +36,17 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, usern
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '6px',
-        fontSize: '0.8rem',
+        gap: '4px',
+        fontSize: '0.75rem',
         color: '#e0e0e0',
-        lineHeight: '1.4',
+        lineHeight: '1.3',
         textAlign: 'center'
       }}>
         <span>🤖</span>
-        <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+        <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
           <span>{t.welcomeHey} <strong style={{ color: '#a855f7' }}>{displayName}</strong>, {isFirstVisit ? t.welcomeFirst : t.welcomeBack}</span>
           {!hasChangedName && (
-            <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px' }}>
+            <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '3px' }}>
               <span>{t.welcomeChangeName}</span>
               <button
                 onClick={onUpdateName}
@@ -57,9 +57,10 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, usern
                   textDecoration: 'underline',
                   cursor: 'pointer',
                   padding: 0,
-                  fontSize: '0.8rem',
+                  fontSize: '0.75rem',
                   fontWeight: 600,
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
+                  touchAction: 'manipulation'
                 }}
               >
                 {t.welcomeClickHere}

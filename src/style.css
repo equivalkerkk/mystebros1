@@ -2946,10 +2946,10 @@ body:has(.payment-modal-overlay) .welcome-banner {
     right: 0;
     background: linear-gradient(90deg, rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.2));
     border-bottom: 1px solid rgba(168, 85, 247, 0.3);
-    padding: 12px 16px;
+    padding: 8px 12px;
     z-index: 998;
     backdrop-filter: blur(10px);
-    min-height: 44px;
+    min-height: 36px;
     transition: transform 0.3s ease-in-out;
 }
 
@@ -2966,17 +2966,29 @@ body:has(.payment-modal-overlay) .welcome-banner {
         right: 0 !important;
         z-index: 998 !important;
         margin: 0 !important;
+        padding: 6px 10px !important;
+        min-height: 32px !important;
+    }
+    
+    .welcome-banner > div {
+        font-size: 0.7rem !important;
+        gap: 3px !important;
+        line-height: 1.2 !important;
+    }
+    
+    .welcome-banner button {
+        font-size: 0.7rem !important;
     }
     
     .welcome-banner.hidden {
-        transform: translateY(-250px) !important;
+        transform: translateY(-200px) !important;
         opacity: 0 !important;
         pointer-events: none !important;
     }
     
     .main-content {
         margin-top: 0 !important;
-        padding-top: 160px !important;
+        padding-top: 145px !important;
     }
     
     .wrapper {
