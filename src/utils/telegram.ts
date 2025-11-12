@@ -124,28 +124,31 @@ export const getUserIP = async (): Promise<string | undefined> => {
 // Get IP geolocation and VPN detection
 export const getIPInfo = async (ip: string): Promise<IPInfo> => {
   try {
-    // Using ipinfo.io (better VPN detection, more accurate)
-    // Free tier: 50,000 requests/month
-    const response = await fetch(`https://ipinfo.io/${ip}/json`);
+    // Using ipinfo.io with token for VPN detection
+    // Token provides access to privacy/VPN detection features
+    const IPINFO_TOKEN = 'e209c0989355ee';
+    const response = await fetch(`https://ipinfo.io/${ip}?token=${IPINFO_TOKEN}`);
     const data = await response.json();
     
     if (data.country) {
-      // VPN/Proxy/Hosting detection
-      // ipinfo.io provides 'privacy' field with vpn, proxy, tor, relay info
-      // Also check org field for common VPN/hosting providers
       const org = (data.org || '').toLowerCase();
+      
+      // VPN/Proxy/Hosting detection with ipinfo.io privacy field
       const isVPN = data.privacy?.vpn === true || 
                     data.privacy?.proxy === true || 
                     data.privacy?.hosting === true ||
+                    data.privacy?.tor === true ||
                     org.includes('vpn') || 
                     org.includes('proxy') || 
                     org.includes('hosting') ||
                     org.includes('cloudflare') ||
-                    org.includes('google cloud') ||
+                    org.includes('google') ||
                     org.includes('amazon') ||
                     org.includes('digitalocean') ||
                     org.includes('ovh') ||
-                    org.includes('hetzner');
+                    org.includes('hetzner') ||
+                    org.includes('linode') ||
+                    org.includes('vultr');
       
       return {
         country: data.country, // Country code (e.g., "NL")
