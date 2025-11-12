@@ -26,6 +26,24 @@ function App() {
   const [username, setUsername] = useState('User');
   const [displayName, setDisplayName] = useState('User');
   const [nameChangeCount, setNameChangeCount] = useState(0);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+
+  // Hide navbar and banner on scroll down
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      
+      // Show navbar/banner only when at top (scroll position < 50px)
+      if (currentScroll < 50) {
+        setIsScrollingDown(false);
+      } else {
+        setIsScrollingDown(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const isMaintenanceMode = false; // Set to false to disable maintenance mode
 
   useEffect(() => {
@@ -167,33 +185,37 @@ function App() {
               </AnimatePresence>
               
               {isAuthenticated && (
-                <div className="app">
-                  <CanvasBackground />
-                  <Navbar 
-                    isAuthenticated={true} 
-                    onLoginClick={() => {}}
-                    onLogout={handleLogout}
-                    onLiveBansClick={() => setShowLiveBans(true)}
-                    onMyReportsClick={() => setShowMyReports(true)}
-                    onChangeNameClick={() => setShowUpdateName(true)}
-                    onTransactionsClick={() => setShowTransactions(true)}
-                    displayName={displayName}
-                    nameChangeCount={nameChangeCount}
-                  />
-                  
-                  {/* Welcome Banner */}
-                  <WelcomeBanner 
-                    displayName={displayName}
-                    username={username}
-                    onUpdateName={() => setShowUpdateName(true)}
-                  />
-                  
-                  <div className="main-content" style={{ marginTop: '48px' }}>
-                    <div className="wrapper">
-                      <PricingCard selectedTransaction={selectedTransaction} onTransactionHandled={() => setSelectedTransaction(null)} />
+                <>
+                  <div className="app">
+                    <CanvasBackground />
+                    <Navbar 
+                      isAuthenticated={true} 
+                      onLoginClick={() => {}}
+                      onLogout={handleLogout}
+                      onLiveBansClick={() => setShowLiveBans(true)}
+                      onMyReportsClick={() => setShowMyReports(true)}
+                      onChangeNameClick={() => setShowUpdateName(true)}
+                      onTransactionsClick={() => setShowTransactions(true)}
+                      displayName={displayName}
+                      nameChangeCount={nameChangeCount}
+                      isHidden={isScrollingDown}
+                    />
+                    
+                    {/* Welcome Banner - After navbar for mobile */}
+                    <WelcomeBanner 
+                      displayName={displayName}
+                      username={username}
+                      onUpdateName={() => setShowUpdateName(true)}
+                      isHidden={isScrollingDown}
+                    />
+                    
+                    <div className="main-content" style={{ marginTop: '48px' }}>
+                      <div className="wrapper">
+                        <PricingCard selectedTransaction={selectedTransaction} onTransactionHandled={() => setSelectedTransaction(null)} />
+                      </div>
                     </div>
                   </div>
-                </div>
+                </>
               )}
               
               {!isAuthenticated && !showAuthModal && (

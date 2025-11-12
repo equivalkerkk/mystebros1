@@ -11,6 +11,7 @@ interface NavbarProps {
   onTransactionsClick?: () => void;
   displayName?: string;
   nameChangeCount?: number;
+  isHidden?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
@@ -22,7 +23,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onChangeNameClick,
   onTransactionsClick,
   displayName: propDisplayName,
-  nameChangeCount = 0
+  nameChangeCount = 0,
+  isHidden = false
 }) => {
   const { t } = useLanguage();
 
@@ -82,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isHidden ? 'hidden' : ''}`}>
       <div className="logo-section">
         <span className="logo-icon">🎯</span>
         <div className="logo-text">
