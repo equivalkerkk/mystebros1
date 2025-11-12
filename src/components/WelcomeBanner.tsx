@@ -33,40 +33,51 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, usern
         maxWidth: '1200px',
         margin: '0 auto',
         display: 'flex',
-        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '4px',
         fontSize: '0.75rem',
         color: '#e0e0e0',
         lineHeight: '1.3',
-        textAlign: 'center'
+        textAlign: 'center',
+        flexWrap: 'nowrap',
+        overflow: 'hidden'
       }}>
-        <span>🤖</span>
-        <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-          <span>{t.welcomeHey} <strong style={{ color: '#a855f7' }}>{displayName}</strong>, {isFirstVisit ? t.welcomeFirst : t.welcomeBack}</span>
-          {!hasChangedName && (
-            <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '3px' }}>
-              <span>{t.welcomeChangeName}</span>
-              <button
-                onClick={onUpdateName}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#3b82f6',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  padding: 0,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                  touchAction: 'manipulation'
-                }}
-              >
-                {t.welcomeClickHere}
-              </button>
-            </span>
-          )}
+        <span style={{ flexShrink: 0 }}>🤖</span>
+        <span style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '3px',
+          flexWrap: 'nowrap',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {t.welcomeHey} <strong style={{ color: '#a855f7' }}>{displayName}</strong>, {isFirstVisit ? t.welcomeFirst : t.welcomeBack}
+            {!hasChangedName && (
+              <>
+                {' '}{t.welcomeChangeName}{' '}
+                <button
+                  onClick={onUpdateName}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#3b82f6',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    touchAction: 'manipulation',
+                    display: 'inline'
+                  }}
+                >
+                  {t.welcomeClickHere}
+                </button>
+              </>
+            )}
+          </span>
         </span>
       </div>
     </div>
