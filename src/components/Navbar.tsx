@@ -8,6 +8,10 @@ interface NavbarProps {
   onLogout?: () => void;
   onLiveBansClick?: () => void;
   onMyReportsClick?: () => void;
+  onChangeNameClick?: () => void;
+  onTransactionsClick?: () => void;
+  displayName?: string;
+  nameChangeCount?: number;
 }
 
 const languages = [
@@ -23,12 +27,23 @@ const languages = [
   { code: 'hi', flag: '🇮🇳', name: 'हिन्दी' },
 ];
 
-export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, onLogout, onLiveBansClick, onMyReportsClick }) => {
+export const Navbar: React.FC<NavbarProps> = ({ 
+  isAuthenticated, 
+  onLoginClick, 
+  onLogout, 
+  onLiveBansClick, 
+  onMyReportsClick,
+  onChangeNameClick,
+  onTransactionsClick,
+  displayName: propDisplayName,
+  nameChangeCount = 0
+}) => {
   const { language, setLanguage, t } = useLanguage();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLiveBansOpen, setIsLiveBansOpen] = useState(false);
   const [username, setUsername] = useState('User');
+  const [displayName, setDisplayName] = useState('User');
   const langRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const liveBansRef = useRef<HTMLDivElement>(null);
@@ -41,9 +56,10 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
       try {
         const auth = localStorage.getItem('rektnow_auth');
         if (auth) {
-          const { username: storedUsername } = JSON.parse(auth);
+          const { username: storedUsername, displayName: storedDisplayName } = JSON.parse(auth);
           if (storedUsername) {
             setUsername(storedUsername);
+            setDisplayName(storedDisplayName || storedUsername);
           }
         }
       } catch (e) {
@@ -52,9 +68,16 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
     }
   }, [isAuthenticated]);
 
-  // Get username from localStorage
-  const getUsername = () => {
-    return username;
+  // Update displayName when prop changes
+  useEffect(() => {
+    if (propDisplayName) {
+      setDisplayName(propDisplayName);
+    }
+  }, [propDisplayName]);
+
+  // Get display name from localStorage
+  const getDisplayName = () => {
+    return displayName;
   };
 
   useEffect(() => {
@@ -127,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
                 boxShadow: '0 0 10px rgba(16, 185, 129, 0.6)',
                 animation: 'pulse 2s infinite'
               }} />
-              <span>Live Bans</span>
+              <span>{t.navLiveBans}</span>
               <svg 
                 width="14" 
                 height="14" 
@@ -188,7 +211,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
                     boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)',
                     animation: 'pulse 2s infinite'
                   }} />
-                  <span style={{ color: '#10b981', fontWeight: 500 }}>Live Feed</span>
+                  <span style={{ color: '#10b981', fontWeight: 500 }}>{t.navLiveBans}</span>
                 </button>
                 <div style={{
                   height: '1px',
@@ -224,7 +247,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
                   <svg viewBox="0 0 24 24" fill="#667eea" style={{ width: '16px', height: '16px' }}>
                     <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
                   </svg>
-                  <span style={{ color: '#667eea', fontWeight: 500 }}>My Reports</span>
+                  <span style={{ color: '#667eea', fontWeight: 500 }}>{t.navMyReports}</span>
                 </button>
               </div>
             )}
@@ -252,42 +275,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
           </svg>
           <span className="social-text">Discord</span>
         </a>
-        <div className="language-selector" ref={langRef}>
-          <button 
-            className="language-select" 
-            onClick={() => setIsLangOpen(!isLangOpen)}
-          >
-            <span className="lang-flag">{currentLang.flag}</span>
-            <svg 
-              className="lang-arrow" 
-              width="14" 
-              height="14" 
-              viewBox="0 0 14 14"
-              style={{ transform: isLangOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-            >
-              <path fill="currentColor" d="M7 10L2 5h10z"/>
-            </svg>
-          </button>
-          {isLangOpen && (
-            <div className="language-dropdown">
-              {languages.map((lang) => (
-                <button
-                  key={lang.code}
-                  className={`language-option ${language === lang.code ? 'active' : ''}`}
-                  onClick={() => handleLanguageSelect(lang.code)}
-                >
-                  <span className="lang-flag">{lang.flag}</span>
-                  <span className="lang-name">{lang.name}</span>
-                  {language === lang.code && (
-                    <svg className="lang-check" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M13 4L6 11L3 8" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
         {isAuthenticated ? (
           <div className="user-profile" ref={profileRef}>
             <button 
@@ -297,7 +284,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
               <svg className="profile-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
               </svg>
-              <span className="profile-username">{getUsername()}</span>
+              <span className="profile-username">{getDisplayName()}</span>
               <svg 
                 className="profile-arrow" 
                 width="14" 
@@ -311,8 +298,8 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
             {isProfileOpen && (
               <div className="profile-dropdown">
                 <div className="profile-info">
-                  <div className="profile-info-label">Logged in as</div>
-                  <div className="profile-info-username">{getUsername()}</div>
+                  <div className="profile-info-label">{t.navLoggedInAs}</div>
+                  <div className="profile-info-username">{username}</div>
                 </div>
                 <div style={{
                   padding: '12px 16px',
@@ -326,23 +313,96 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
                     color: '#999',
                     marginBottom: '4px'
                   }}>
-                    Account Status
+                    {t.navAccountStatus}
                   </div>
                   <div style={{
                     fontSize: '0.875rem',
                     color: '#ef4444',
                     fontWeight: 500
                   }}>
-                    ⚠️ Not Activated
+                    ⚠️ {t.navNotActivated}
                   </div>
                   <div style={{
                     fontSize: '0.75rem',
                     color: '#666',
                     marginTop: '4px'
                   }}>
-                    Purchase a plan to activate
+                    {t.navPurchasePlan}
                   </div>
                 </div>
+                {onTransactionsClick && (
+                  <button 
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      onTransactionsClick();
+                    }}
+                    className="profile-logout"
+                    style={{
+                      color: '#3b82f6',
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      justifyContent: 'flex-start'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: '16px', height: '16px', flexShrink: 0 }}>
+                      <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                    </svg>
+                    <span style={{ 
+                      flex: 1,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontSize: '0.875rem'
+                    }}>{t.navTransactions}</span>
+                  </button>
+                )}
+                {onChangeNameClick && (
+                  <button 
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      onChangeNameClick();
+                    }}
+                    className="profile-logout"
+                    style={{
+                      color: nameChangeCount >= 3 ? '#666' : '#a855f7',
+                      cursor: nameChangeCount >= 3 ? 'not-allowed' : 'pointer',
+                      opacity: nameChangeCount >= 3 ? 0.5 : 1,
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      justifyContent: 'flex-start'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (nameChangeCount < 3) {
+                        e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                    disabled={nameChangeCount >= 3}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: '16px', height: '16px', flexShrink: 0 }}>
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                    <span style={{ 
+                      flex: 1,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontSize: '0.875rem'
+                    }}>{t.navEditName}</span>
+                  </button>
+                )}
                 <button className="profile-logout" onClick={() => {
                   setIsProfileOpen(false);
                   onLogout?.();
@@ -350,7 +410,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLoginClick, o
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
                   </svg>
-                  Logout
+                  {t.navLogout}
                 </button>
               </div>
             )}

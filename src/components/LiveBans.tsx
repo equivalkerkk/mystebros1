@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../context/LanguageContext';
 import {
   FaInstagram,
   FaTiktok,
@@ -211,6 +212,7 @@ interface LiveBansProps {
 }
 
 export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
+  const { t } = useLanguage();
   const [bans, setBans] = useState<BanNotification[]>([]);
   const [showAccessMsg, setShowAccessMsg] = useState(false);
 
@@ -274,7 +276,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
             </svg>
           </div>
           <h2 className="payment-modal-title">
-            Live Bans Feed
+            {t.liveBansTitle}
           </h2>
           <button className="payment-modal-close" onClick={onClose}>
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -305,7 +307,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                       </svg>
                     </div>
                     <h2 className="payment-modal-title">
-                      Panel Access Required
+                      {t.liveBansAccessRequired}
                     </h2>
                     <button className="payment-modal-close" onClick={() => setShowAccessMsg(false)}>
                       <svg viewBox="0 0 24 24" fill="currentColor">
@@ -333,7 +335,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                       marginBottom: '12px',
                       lineHeight: '1.4'
                     }}>
-                      Premium Feature
+                      {t.liveBansPremiumTitle}
                     </h3>
                     <p style={{ 
                       color: '#9ca3af', 
@@ -341,7 +343,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                       lineHeight: '1.6',
                       marginBottom: '24px'
                     }}>
-                      Detailed user information is only available for panel members. Purchase access to unlock all features.
+                      {t.liveBansPremiumDesc}
                     </p>
                     <button
                       onClick={() => setShowAccessMsg(false)}
@@ -352,7 +354,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                           <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
                         </svg>
                       </div>
-                      <span className="payment-wallet-name">Got it!</span>
+                      <span className="payment-wallet-name">{t.liveBansGotIt}</span>
                     </button>
                   </div>
                 </motion.div>
@@ -395,7 +397,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                     animation: 'pulse 2s infinite'
                   }} />
                   <div style={{ color: '#a7f3d0', flex: 1 }}>
-                    <span style={{ fontWeight: 600, color: '#10b981' }}>Real-time</span> social media ban notifications - System is actively running - These ban results are shown from reports sent from <span style={{ fontWeight: 600, color: '#10b981' }}>RektNow</span> panel.
+                    <span style={{ fontWeight: 600, color: '#10b981' }}>{t.liveBansRealtime}</span> {t.liveBansDescription} <span style={{ fontWeight: 600, color: '#10b981' }}>{t.liveBansPanelName}</span>
                   </div>
                 </div>
               </div>
@@ -409,7 +411,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                     style={{ textAlign: 'center', padding: '3rem 1rem', color: '#9ca3af' }}
                   >
                     <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.6 }}>⚠️</div>
-                    <p>Waiting for new ban notifications...</p>
+                    <p>{t.liveBansWaiting}</p>
                   </motion.div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -464,11 +466,11 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                         {/* Target Info */}
                         <div style={{ width: '100%', paddingLeft: '52px' }}>
                           <div style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '4px' }}>
-                            Target: <span style={{ color: '#f59e0b', fontWeight: 500 }}>{ban.targetType}</span>
+                            {t.liveBansTarget} <span style={{ color: '#f59e0b', fontWeight: 500 }}>{ban.targetType}</span>
                           </div>
                           {getAccountBasedTargets(ban.platform).includes(ban.targetType) && (
                             <div style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '4px', position: 'relative' }}>
-                              User: 
+                              {t.liveBansUser} 
                               <span 
                                 onClick={() => setShowAccessMsg(true)}
                                 style={{ 
@@ -518,7 +520,7 @@ export const LiveBans: React.FC<LiveBansProps> = ({ onClose }) => {
                             borderRadius: '6px',
                             border: '1px solid rgba(239, 68, 68, 0.2)'
                           }}>
-                            ⚡ Banned in: {ban.banDuration}
+                            ⚡ {t.liveBansBannedIn} {ban.banDuration}
                           </div>
                         </div>
                       </motion.div>

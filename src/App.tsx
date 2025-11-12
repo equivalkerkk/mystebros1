@@ -8,6 +8,9 @@ import { Maintenance } from './components/Maintenance';
 import { LiveBans } from './components/LiveBans';
 import { MyReports } from './components/MyReports';
 import { Loading } from './components/Loading';
+import { WelcomeBanner } from './components/WelcomeBanner';
+import { UpdateNameModal } from './components/UpdateNameModal';
+import { Transactions } from './components/Transactions';
 import { AnimatePresence } from 'framer-motion';
 import './style.css';
 
@@ -17,7 +20,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [showLiveBans, setShowLiveBans] = useState(false);
   const [showMyReports, setShowMyReports] = useState(false);
+  const [showUpdateName, setShowUpdateName] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [username, setUsername] = useState('User');
+  const [displayName, setDisplayName] = useState('User');
+  const [nameChangeCount, setNameChangeCount] = useState(0);
   const isMaintenanceMode = false; // Set to false to disable maintenance mode
 
   useEffect(() => {
@@ -35,6 +43,9 @@ function App() {
             setIsAuthenticated(true);
             setShowAuthModal(false);
             setUsername(parsed.username);
+            // Load display name from backend or use username as fallback
+            setDisplayName(parsed.displayName || parsed.username);
+            setNameChangeCount(parsed.nameChangeCount || 0);
           } else {
             localStorage.removeItem('rektnow_auth');
             setIsAuthenticated(false);
@@ -60,6 +71,40 @@ function App() {
     localStorage.removeItem('rektnow_auth');
     setIsAuthenticated(false);
     setShowAuthModal(true);
+  };
+
+  const handleUpdateDisplayName = async (newName: string) => {
+    try {
+      const authData = localStorage.getItem('rektnow_auth');
+      if (!authData) return;
+      
+      const { token } = JSON.parse(authData);
+      
+      const response = await fetch('http://localhost:8000/auth/update-display-name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token, displayName: newName }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setDisplayName(newName);
+        setNameChangeCount(data.nameChangeCount);
+        // Update localStorage
+        const updated = JSON.parse(authData);
+        updated.displayName = newName;
+        updated.nameChangeCount = data.nameChangeCount;
+        localStorage.setItem('rektnow_auth', JSON.stringify(updated));
+      } else {
+        throw new Error(data.message || 'Update failed');
+      }
+    } catch (error) {
+      console.error('Update display name error:', error);
+      throw error;
+    }
   };
 
   return (
@@ -97,6 +142,30 @@ function App() {
                 )}
               </AnimatePresence>
               
+              {/* Update Name Modal */}
+              <UpdateNameModal
+                isOpen={showUpdateName}
+                currentName={displayName}
+                username={username}
+                nameChangeCount={nameChangeCount}
+                onClose={() => setShowUpdateName(false)}
+                onUpdate={handleUpdateDisplayName}
+              />
+              
+              {/* Transactions Modal */}
+              <AnimatePresence>
+                {showTransactions && (
+                  <Transactions 
+                    onClose={() => setShowTransactions(false)}
+                    onContinuePayment={(transaction) => {
+                      console.log('Continue payment:', transaction);
+                      setSelectedTransaction(transaction);
+                      setShowTransactions(false);
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+              
               {isAuthenticated && (
                 <div className="app">
                   <CanvasBackground />
@@ -106,11 +175,22 @@ function App() {
                     onLogout={handleLogout}
                     onLiveBansClick={() => setShowLiveBans(true)}
                     onMyReportsClick={() => setShowMyReports(true)}
+                    onChangeNameClick={() => setShowUpdateName(true)}
+                    onTransactionsClick={() => setShowTransactions(true)}
+                    displayName={displayName}
+                    nameChangeCount={nameChangeCount}
                   />
                   
-                  <div className="main-content">
+                  {/* Welcome Banner */}
+                  <WelcomeBanner 
+                    displayName={displayName}
+                    username={username}
+                    onUpdateName={() => setShowUpdateName(true)}
+                  />
+                  
+                  <div className="main-content" style={{ marginTop: '48px' }}>
                     <div className="wrapper">
-                      <PricingCard />
+                      <PricingCard selectedTransaction={selectedTransaction} onTransactionHandled={() => setSelectedTransaction(null)} />
                     </div>
                   </div>
                 </div>

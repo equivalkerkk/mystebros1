@@ -7,12 +7,25 @@ import { PaymentButtons } from './PaymentButtons';
 const BASE_PRICE_USD = 299.99;
 const ORIGINAL_PRICE_USD = 599.99;
 
-export const PricingCard: React.FC = () => {
+interface PricingCardProps {
+  selectedTransaction?: any;
+  onTransactionHandled?: () => void;
+}
+
+export const PricingCard: React.FC<PricingCardProps> = ({ selectedTransaction, onTransactionHandled }) => {
   const { t, currency, convertPrice, formatPrice } = useLanguage();
   
   const convertedPrice = convertPrice(BASE_PRICE_USD);
   const convertedOriginal = convertPrice(ORIGINAL_PRICE_USD);
   const [whole, decimal] = convertedPrice.split('.');
+
+  // Parse subtitle with bold markdown (**text**)
+  const parseSubtitle = (text: string) => {
+    const parts = text.split(/\*\*(.*?)\*\*/);
+    return parts.map((part, index) => 
+      index % 2 === 1 ? <strong key={index}>{part}</strong> : part
+    );
+  };
 
   return (
     <div className="card">
@@ -23,7 +36,88 @@ export const PricingCard: React.FC = () => {
                     Mass Report Panel
                   </div>
                 </div>
-                <div className="card-subtitle">{t.cardSubtitle}</div>
+                <div className="card-subtitle" style={{
+                  background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(59, 130, 246, 0.05))',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(168, 85, 247, 0.2)',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  marginTop: '16px',
+                  lineHeight: '1.6',
+                  fontSize: '0.875rem',
+                  color: '#d0d0d0',
+                  boxShadow: '0 4px 20px rgba(168, 85, 247, 0.08)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px'
+                }}>
+                  {/* Animated Shield Icon */}
+                  <svg 
+                    width="20" 
+                    height="20" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    style={{
+                      flexShrink: 0,
+                      marginTop: '1px',
+                      filter: 'drop-shadow(0 0 6px rgba(168, 85, 247, 0.4))',
+                      animation: 'pulse 2s ease-in-out infinite'
+                    }}
+                  >
+                    <path 
+                      d="M12 2L4 6V12C4 16.5 7 20.5 12 22C17 20.5 20 16.5 20 12V6L12 2Z" 
+                      fill="url(#gradient)"
+                      opacity="0.2"
+                    />
+                    <path 
+                      d="M12 2L4 6V12C4 16.5 7 20.5 12 22C17 20.5 20 16.5 20 12V6L12 2Z" 
+                      stroke="url(#gradient)" 
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path 
+                      d="M9 12L11 14L15 10" 
+                      stroke="url(#gradient)" 
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#a855f7" />
+                        <stop offset="100%" stopColor="#3b82f6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  
+                  <div style={{ flex: 1 }}>
+                    {parseSubtitle(t.cardSubtitle)}
+                  </div>
+                </div>
+                
+                {/* CSS Animation */}
+                <style>{`
+                  @keyframes pulse {
+                    0%, 100% {
+                      opacity: 1;
+                      transform: scale(1);
+                    }
+                    50% {
+                      opacity: 0.8;
+                      transform: scale(1.05);
+                    }
+                  }
+                  
+                  .card-subtitle strong {
+                    background: linear-gradient(135deg, #a855f7, #3b82f6);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    font-weight: 700;
+                    text-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+                  }
+                `}</style>
               </div>
 
               <div className="price-section">
@@ -45,12 +139,12 @@ export const PricingCard: React.FC = () => {
               <div className="purchase-info-box">
                 <div className="purchase-info-icon">→</div>
                 <div className="purchase-info-content">
-                  <div className="purchase-info-title">Get Started Now</div>
+                  <div className="purchase-info-title">{t.getStartedNow}</div>
                   <div className="purchase-info-text">{t.purchaseInfo}</div>
                 </div>
               </div>
 
-              <PaymentButtons price={convertedPrice} currency={currency} />
+              <PaymentButtons price={convertedPrice} currency={currency} selectedTransaction={selectedTransaction} onTransactionHandled={onTransactionHandled} />
 
               <div className="payment-info">
                 <svg className="payment-wallet-icon" viewBox="0 0 512 512" fill="currentColor">

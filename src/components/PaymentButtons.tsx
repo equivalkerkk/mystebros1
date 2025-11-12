@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '../context/LanguageContext';
 import { sendPaymentCreatedNotification, sendPaymentStatusNotification } from '../utils/telegram';
@@ -6,6 +6,8 @@ import { sendPaymentCreatedNotification, sendPaymentStatusNotification } from '.
 interface PaymentButtonsProps {
   price: string;
   currency: { code: string; symbol: string };
+  selectedTransaction?: any;
+  onTransactionHandled?: () => void;
 }
 
 interface CryptoOption {
@@ -234,7 +236,18 @@ const targetTypeIcons: { [key: string]: string } = {
   dm: '💌'
 };
 
-export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
+interface PendingPayment {
+  crypto: string;
+  network: string | null;
+  address: string;
+  amount: string;
+  paymentId: string;
+  timestamp: number;
+  status: string;
+  packageType: 'full' | 'single'; // Track which package this payment is for
+}
+
+export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency, selectedTransaction, onTransactionHandled }) => {
   const { t, convertPrice } = useLanguage();
   const [showCryptoSelect, setShowCryptoSelect] = useState(false);
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoOption | null>(null);
@@ -248,14 +261,18 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
   const [paymentStatus, setPaymentStatus] = useState<string>(''); // Current payment status
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [pendingPayments, setPendingPayments] = useState<{ [key: string]: PendingPayment }>({});
   const [showQR, setShowQR] = useState(false);
   
-  // Single Report states
+  // Single Ban states
   const [showSingleReportModal, setShowSingleReportModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [selectedTargetType, setSelectedTargetType] = useState<string | null>(null);
-  const [isSingleReportPayment, setIsSingleReportPayment] = useState(false); // Track if payment is for single report
+  const [isSingleBanPayment, setIsSingleBanPayment] = useState(false); // Track if payment is for single ban
+  const currentPackageTypeRef = useRef<'full' | 'single'>('full'); // Ref to track current package type for reliable access
+  const [isLoadingExistingPayment, setIsLoadingExistingPayment] = useState(false); // Track if we're loading an existing payment
   const [showCloseConfirm, setShowCloseConfirm] = useState(false); // Confirmation modal
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false); // Cancel payment confirmation modal
   
   // Card payment states
   const [showCardPayment, setShowCardPayment] = useState(false);
@@ -269,7 +286,68 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
   const [loadingRates, setLoadingRates] = useState(false);
 
   const usdPrice = 299.99;
-  const singleReportPrice = 99.99;
+  const singleBanPrice = 99.99;
+
+  // Load pending payments from localStorage on mount
+  useEffect(() => {
+    const username = localStorage.getItem('rektnow_auth') 
+      ? JSON.parse(localStorage.getItem('rektnow_auth')!).username 
+      : 'guest';
+    
+    const savedPayments = localStorage.getItem(`rektnow_pending_payments_${username}`);
+    if (savedPayments) {
+      try {
+        const parsed = JSON.parse(savedPayments);
+        // Clean up old payments (older than 24 hours)
+        const now = Date.now();
+        const cleaned: { [key: string]: PendingPayment } = {};
+        Object.entries(parsed).forEach(([key, payment]: [string, any]) => {
+          if ((now - payment.timestamp) < 24 * 60 * 60 * 1000) { // 24 hours
+            cleaned[key] = payment as PendingPayment;
+          }
+        });
+        setPendingPayments(cleaned);
+      } catch (e) {
+        console.error('Failed to load pending payments:', e);
+      }
+    }
+  }, []);
+
+  // Save pending payments to localStorage
+  const savePendingPayment = (crypto: string, network: string | null, packageType: 'full' | 'single', payment: PendingPayment) => {
+    const username = localStorage.getItem('rektnow_auth') 
+      ? JSON.parse(localStorage.getItem('rektnow_auth')!).username 
+      : 'guest';
+    
+    const key = network ? `${crypto}_${network}_${packageType}` : `${crypto}_${packageType}`;
+    const updated = { ...pendingPayments, [key]: payment };
+    setPendingPayments(updated);
+    localStorage.setItem(`rektnow_pending_payments_${username}`, JSON.stringify(updated));
+  };
+
+  // Check if there's a pending payment for this crypto/network
+  const getPendingPayment = (crypto: string, network: string | null, packageType: 'full' | 'single'): PendingPayment | null => {
+    const key = network ? `${crypto}_${network}_${packageType}` : `${crypto}_${packageType}`;
+    return pendingPayments[key] || null;
+  };
+
+  // Cancel/Delete a pending payment
+  const cancelPendingPayment = (crypto: string, network: string | null, packageType: 'full' | 'single') => {
+    const username = localStorage.getItem('rektnow_auth') 
+      ? JSON.parse(localStorage.getItem('rektnow_auth')!).username 
+      : 'guest';
+    
+    const key = network ? `${crypto}_${network}_${packageType}` : `${crypto}_${packageType}`;
+    const payment = pendingPayments[key];
+    
+    if (payment) {
+      // Update status to cancelled instead of deleting
+      payment.status = 'cancelled';
+      const updated = { ...pendingPayments, [key]: payment };
+      setPendingPayments(updated);
+      localStorage.setItem(`rektnow_pending_payments_${username}`, JSON.stringify(updated));
+    }
+  };
   
   // Format price using the same convertPrice function as PricingCard
   const formatButtonPrice = (usdAmount: number): string => {
@@ -353,6 +431,51 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
     fetchExchangeRates();
   }, []);
 
+  // Handle selected transaction from Transactions modal
+  useEffect(() => {
+    if (selectedTransaction && onTransactionHandled) {
+      console.log('Opening transaction from Transactions modal:', selectedTransaction);
+      
+      // Find the crypto and network (case-insensitive)
+      const crypto = cryptoOptions.find(c => c.id.toLowerCase() === selectedTransaction.crypto.toLowerCase());
+      if (!crypto) {
+        console.error('Crypto not found:', selectedTransaction.crypto);
+        onTransactionHandled();
+        return;
+      }
+
+      // Set package type
+      const isFullPanel = selectedTransaction.packageType === 'full';
+      setIsSingleBanPayment(!isFullPanel);
+      currentPackageTypeRef.current = selectedTransaction.packageType;
+
+      // Find network if exists
+      let network: NetworkOption | null = null;
+      if (selectedTransaction.network && crypto.networks) {
+        network = crypto.networks.find(n => n.id === selectedTransaction.network) || null;
+      }
+
+      // Load the payment
+      setSelectedCrypto(crypto);
+      setSelectedNetwork(network);
+      setPaymentAddress(selectedTransaction.address);
+      setPaymentAmount(selectedTransaction.amount);
+      setPaymentId(selectedTransaction.paymentId);
+      setPaymentStatus(selectedTransaction.status);
+      setPaymentQrUrl(''); // Will use address for QR
+      setIsLoadingExistingPayment(true);
+      
+      setShowPaymentPage(true);
+      setShowCryptoSelect(false);
+      setShowNetworkSelect(false);
+      setLoading(false);
+      setError('');
+
+      // Mark as handled
+      onTransactionHandled();
+    }
+  }, [selectedTransaction, onTransactionHandled]);
+
   const handleCryptoClick = (crypto: CryptoOption) => {
     setSelectedCrypto(crypto);
     
@@ -361,22 +484,55 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
       setShowCryptoSelect(false);
       setShowNetworkSelect(true);
     } else {
-      // Single chain, proceed directly
-      handleCryptoSelect(crypto, null);
+      // Single chain, proceed directly - use ref for current package type
+      handleCryptoSelect(crypto, null, currentPackageTypeRef.current);
     }
   };
 
   const handleNetworkClick = (network: NetworkOption) => {
     setSelectedNetwork(network);
     if (selectedCrypto) {
-      handleCryptoSelect(selectedCrypto, network);
+      // Use ref for current package type
+      handleCryptoSelect(selectedCrypto, network, currentPackageTypeRef.current);
     }
   };
 
-  const handleCryptoSelect = async (crypto: CryptoOption, network: NetworkOption | null) => {
+  const handleCryptoSelect = async (crypto: CryptoOption, network: NetworkOption | null, forcedPackageType?: 'full' | 'single') => {
     console.log('=== PAYMENT FLOW START ===');
     console.log('Selected crypto:', crypto);
     console.log('Selected network:', network);
+
+    // Check if there's already a pending payment for this crypto/network/package combination
+    const packageType = forcedPackageType || (isSingleBanPayment ? 'single' : 'full');
+    console.log('Package type:', packageType, '(forced:', forcedPackageType, ', state:', isSingleBanPayment, ')');
+    const existingPayment = getPendingPayment(crypto.id, network?.id || null, packageType);
+    
+    // Only show existing payment if it's not cancelled or finished/failed
+    if (existingPayment && existingPayment.status !== 'cancelled' && existingPayment.status !== 'finished' && existingPayment.status !== 'failed' && existingPayment.status !== 'rejected') {
+      console.log('⚠️ Found existing pending payment for this package:', existingPayment);
+      
+      // Mark that we're loading an existing payment
+      setIsLoadingExistingPayment(true);
+      
+      // Load existing payment details
+      setSelectedCrypto(crypto);
+      setSelectedNetwork(network);
+      setPaymentAddress(existingPayment.address);
+      setPaymentAmount(existingPayment.amount);
+      setPaymentId(existingPayment.paymentId);
+      setPaymentStatus(existingPayment.status);
+      setPaymentQrUrl(''); // Will use address for QR
+      
+      setShowCryptoSelect(false);
+      setShowNetworkSelect(false);
+      setShowPaymentPage(true);
+      setLoading(false);
+      setError(''); // Clear any errors - this is NOT an error, just showing existing payment
+      return;
+    }
+    
+    // If we reach here, it's a NEW payment
+    setIsLoadingExistingPayment(false);
     
     setShowCryptoSelect(false);
     setShowNetworkSelect(false);
@@ -385,10 +541,10 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
     setError('');
     setShowQR(false); // Reset QR visibility
 
-    // Determine price based on whether it's single report or full panel
-    const paymentPrice = isSingleReportPayment ? singleReportPrice : usdPrice;
+    // Determine price based on whether it's single ban or full panel
+    const paymentPrice = isSingleBanPayment ? singleBanPrice : usdPrice;
     console.log('Payment price:', paymentPrice);
-    console.log('Is single report payment:', isSingleReportPayment);
+    console.log('Is single ban payment:', isSingleBanPayment);
 
     try {
       // Determine pay currency based on network selection
@@ -454,8 +610,8 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
         price_currency: 'usd',
         pay_currency: payCurrency,
         order_id: `ORDER-${Date.now()}`,
-        order_description: isSingleReportPayment 
-          ? `RektNow Single Report - ${selectedPlatform} ${selectedTargetType}`
+        order_description: isSingleBanPayment 
+          ? `RektNow Single Ban - ${selectedPlatform} ${selectedTargetType}`
           : 'RektNow Panel Access',
         ipn_callback_url: window.location.origin + '/api/payment-callback',
         success_url: window.location.origin + '/success',
@@ -488,6 +644,19 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
       setPaymentAddress(address);
       setPaymentId(currentPaymentId);
       setPaymentStatus(paymentData.payment_status || 'waiting');
+
+      // Save this payment to prevent duplicates
+      const packageType = isSingleBanPayment ? 'single' : 'full';
+      savePendingPayment(crypto.id, network?.id || null, packageType, {
+        crypto: crypto.id,  // Use crypto.id (lowercase) instead of crypto.symbol
+        network: network?.id || null,  // Use network.id instead of network.name
+        address: address,
+        amount: cryptoAmount,
+        paymentId: currentPaymentId,
+        timestamp: Date.now(),
+        status: paymentData.payment_status || 'waiting',
+        packageType: packageType
+      });
       
       // Check if payment provider provides QR code URL
       if (paymentData.qr_code_url) {
@@ -551,6 +720,28 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
         if (newStatus && newStatus !== paymentStatus) {
           console.log(`Payment status changed: ${paymentStatus} → ${newStatus}`);
           setPaymentStatus(newStatus);
+
+          // Update saved payment status
+          if (selectedCrypto) {
+            const packageType = isSingleBanPayment ? 'single' : 'full';
+            const key = selectedNetwork?.id ? `${selectedCrypto.id}_${selectedNetwork.id}_${packageType}` : `${selectedCrypto.id}_${packageType}`;
+            const existing = pendingPayments[key];
+            if (existing) {
+              existing.status = newStatus;
+              savePendingPayment(selectedCrypto.id, selectedNetwork?.id || null, packageType, existing);
+            }
+
+            // If payment is finished, remove from pending
+            if (newStatus === 'finished' || newStatus === 'failed' || newStatus === 'rejected') {
+              const username = localStorage.getItem('rektnow_auth') 
+                ? JSON.parse(localStorage.getItem('rektnow_auth')!).username 
+                : 'guest';
+              const updated = { ...pendingPayments };
+              delete updated[key];
+              setPendingPayments(updated);
+              localStorage.setItem(`rektnow_pending_payments_${username}`, JSON.stringify(updated));
+            }
+          }
           
           // Send Telegram notification about status change
           try {
@@ -608,8 +799,8 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
         return;
       }
 
-      // Get payment price (based on whether it's single report or panel access)
-      const paymentPrice = isSingleReportPayment ? singleReportPrice : usdPrice;
+      // Get payment price (based on whether it's single ban or panel access)
+      const paymentPrice = isSingleBanPayment ? singleBanPrice : usdPrice;
       
       // Add 5% card processing fee
       const priceWithFee = Math.round(paymentPrice * 1.05 * 100) / 100;
@@ -687,8 +878,8 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
             network: cardProvider,
             address: addressIn,
             paymentId: paymentTrackingId,
-            orderDescription: isSingleReportPayment 
-              ? `RektNow Single Report - Card Payment`
+            orderDescription: isSingleBanPayment 
+              ? `RektNow Single Ban - Card Payment`
               : 'RektNow Panel Access - Card Payment',
             timestamp: new Date().toISOString()
           });
@@ -721,12 +912,16 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
     setShowPaymentPage(false);
     setShowCryptoSelect(false);
     setSelectedCrypto(null);
+    setSelectedNetwork(null);
     setShowQR(false);
-    setIsSingleReportPayment(false);
+    setIsSingleBanPayment(false);
+    currentPackageTypeRef.current = 'full'; // Reset to full
+    setIsLoadingExistingPayment(false); // Reset existing payment flag
     setShowCloseConfirm(false);
     setShowCardPayment(false);
     setCardError('');
     setCardPaymentLink('');
+    setError(''); // Clear errors when closing
     document.body.style.overflow = '';
   };
 
@@ -758,7 +953,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
         </svg>
         <span>
-          <span>{t.btnSingleReport}</span> <span className="amount-display">{formatButtonPrice(singleReportPrice)}</span>
+          <span>{t.btnSingleReport}</span> <span className="amount-display">{formatButtonPrice(singleBanPrice)}</span>
         </span>
       </button>
 
@@ -787,7 +982,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                     ? `Select ${selectedCrypto?.symbol || 'Crypto'} Network`
                     : showCardPayment
                       ? t.payWithCard
-                      : `${t.paymentModalTitlePaying} ${selectedCrypto?.name}${selectedNetwork ? ` - ${selectedNetwork.name}` : ''}`
+                      : `${selectedCrypto?.name}${selectedNetwork ? ` - ${selectedNetwork.name}` : ''}`
                 }
               </h2>
               <button className="payment-modal-close" onClick={(e) => {
@@ -1024,7 +1219,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                     color: '#93c5fd'
                   }}>
                     {(() => {
-                      const basePrice = isSingleReportPayment ? singleReportPrice : usdPrice;
+                      const basePrice = isSingleBanPayment ? singleBanPrice : usdPrice;
                       const priceWithFee = Math.round(basePrice * 1.05 * 100) / 100;
                       const convertPrice = (usdPrice: number, targetCurrency: string): number => {
                         if (targetCurrency === 'USD') return usdPrice;
@@ -1124,6 +1319,31 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
             {/* Payment Details */}
             {showPaymentPage && selectedCrypto && (
               <div className="payment-modal-body payment-details">
+                {/* Existing Payment Info Banner - Only show if we loaded an existing payment */}
+                {isLoadingExistingPayment && (
+                  <div style={{
+                    padding: '12px 16px',
+                    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(96, 165, 250, 0.05) 100%)',
+                    border: '1px solid rgba(59, 130, 246, 0.25)',
+                    borderRadius: '10px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <div style={{
+                      fontSize: '1.1rem',
+                      flexShrink: 0
+                    }}>ℹ️</div>
+                    <div style={{
+                      fontSize: '0.8rem',
+                      color: '#93c5fd',
+                      lineHeight: '1.4'
+                    }}> <strong style={{ color: '#60a5fa' }}>{t.paymentActiveTitle}</strong> - {t.paymentActiveDesc}
+                    </div>
+                  </div>
+                )}
+
                 {/* Network Badge */}
                 {selectedNetwork && (
                   <div className="payment-network-badge">
@@ -1146,14 +1366,14 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                   <div className="payment-amount-value">
                     {loading ? '...' : paymentAmount || '...'} {selectedCrypto.symbol}
                   </div>
-                  <div className="payment-amount-usd">${isSingleReportPayment ? singleReportPrice : usdPrice} USD</div>
+                  <div className="payment-amount-usd">${isSingleBanPayment ? singleBanPrice : usdPrice} USD</div>
                 </div>
 
                 <div className="payment-address-container">
                   {loading ? (
                     <div className="payment-address-loading">{t.paymentGenerating}</div>
-                  ) : error ? (
-                    <div className="payment-address-error">{t.paymentError}: {error}</div>
+                  ) : !paymentAddress ? (
+                    <div className="payment-address-error">{t.paymentError}: {error || 'Address not available'}</div>
                   ) : (
                     <>
                       {/* Address Section */}
@@ -1186,19 +1406,19 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                                  '#f59e0b'
                           }}></div>
                           <span style={{ fontWeight: 500 }}>
-                            {paymentStatus === 'waiting' ? 'Waiting for Payment' : 
-                             paymentStatus === 'processing' ? 'Processing Payment' : 
-                             paymentStatus === 'sending' ? 'Sending Funds' : 
-                             paymentStatus === 'finished' ? 'Payment Confirmed' : 
-                             paymentStatus === 'failed' ? 'Payment Failed' : 
-                             paymentStatus === 'rejected' ? 'Payment Rejected' : 
-                             paymentStatus || 'Checking Status'}
+                            {paymentStatus === 'waiting' ? t.paymentWaitingFor : 
+                             paymentStatus === 'processing' ? t.paymentProcessing : 
+                             paymentStatus === 'sending' ? t.paymentSending : 
+                             paymentStatus === 'finished' ? t.paymentConfirmed : 
+                             paymentStatus === 'failed' ? t.paymentFailed : 
+                             paymentStatus === 'rejected' ? t.paymentRejected : 
+                             paymentStatus || t.paymentCheckingStatus}
                           </span>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                          <div>Status updates automatically</div>
+                          <div>{t.paymentStatusUpdates}</div>
                           <div style={{ fontSize: '0.65rem', color: '#888', marginTop: '4px' }}>
-                            Last checked: {new Date().toLocaleTimeString()}
+                            {t.paymentLastChecked} {new Date().toLocaleTimeString()}
                           </div>
                         </div>
                       </div>
@@ -1224,7 +1444,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                         <svg viewBox="0 0 24 24" fill="currentColor">
                           <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM17 13h2v2h-2zM19 15h2v2h-2zM17 17h2v2h-2zM19 19h2v2h-2z"/>
                         </svg>
-                        {showQR ? 'Hide QR Code' : 'Show QR Code'}
+                        {showQR ? t.paymentHideQR : t.paymentShowQR}
                       </button>
 
                       {/* QR Code Section (Collapsible) */}
@@ -1270,6 +1490,31 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                 <button className="payment-back-btn" onClick={handleBackToCryptos}>
                   {t.paymentBackBtn}
                 </button>
+                
+                {/* Cancel Payment Button */}
+                {!loading && paymentAddress && (
+                  <button 
+                    className="payment-back-btn"
+                    onClick={() => setShowCancelConfirm(true)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      color: '#ef4444',
+                      marginTop: '12px',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                      e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                    }}
+                  >
+                    🗑️ {t.paymentCancelButton}
+                  </button>
+                )}
               </div>
             )}
 
@@ -1278,7 +1523,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
         </div>
       )}
       
-      {/* Single Report Modal */}
+      {/* Single Ban Modal */}
       {showSingleReportModal && (
         <div className="payment-modal-overlay" onClick={() => {
           setShowSingleReportModal(false);
@@ -1311,9 +1556,120 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
               {/* Platform Selection */}
               {!selectedPlatform && (
                 <>
-                  <p style={{ textAlign: 'center', color: '#999', marginBottom: '20px', fontSize: '0.95rem' }}>
-                    {t.selectPlatform || '👇 Select a platform below to proceed.'}
-                  </p>
+                  {/* Service Details Info Box */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(59, 130, 246, 0.05))',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(168, 85, 247, 0.2)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    marginBottom: '20px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '8px',
+                      maxWidth: '100%',
+                      margin: '0 auto'
+                    }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        padding: '10px 14px',
+                        background: 'rgba(168, 85, 247, 0.08)',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(168, 85, 247, 0.2)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span style={{ fontSize: '0.8rem', color: '#d0d0d0' }}>{t.singleReportSuccessRate}</span>
+                        </div>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          fontWeight: 700, 
+                          color: '#a855f7',
+                          background: 'rgba(168, 85, 247, 0.15)',
+                          padding: '4px 12px',
+                          borderRadius: '6px'
+                        }}>{t.singleReportSuccessValue}</span>
+                      </div>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        padding: '10px 14px',
+                        background: 'rgba(59, 130, 246, 0.08)',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(59, 130, 246, 0.2)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M13 10V3L4 14H11L11 21L20 10L13 10Z" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span style={{ fontSize: '0.8rem', color: '#d0d0d0' }}>{t.singleReportProcessingTime}</span>
+                        </div>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          fontWeight: 700, 
+                          color: '#3b82f6',
+                          background: 'rgba(59, 130, 246, 0.15)',
+                          padding: '4px 12px',
+                          borderRadius: '6px'
+                        }}>{t.singleReportProcessingValue}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Platform Selection Hint */}
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    marginBottom: '20px',
+                    padding: '12px 16px',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255, 255, 255, 0.05)'
+                  }}>
+                    <svg 
+                      width="18" 
+                      height="18" 
+                      viewBox="0 0 24 24" 
+                      fill="none"
+                      style={{
+                        filter: 'drop-shadow(0 0 4px rgba(96, 165, 250, 0.3))'
+                      }}
+                    >
+                      <path 
+                        d="M19 9L12 15L5 9" 
+                        stroke="url(#arrowGradient)" 
+                        strokeWidth="2.5" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                      <defs>
+                        <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#60a5fa" />
+                          <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <span style={{ 
+                      color: '#999', 
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      letterSpacing: '0.2px'
+                    }}>
+                      {t.selectPlatform || 'Select a platform below to proceed'}
+                    </span>
+                  </div>
                   {platforms.map((platform) => (
                     <button
                       key={platform.id}
@@ -1338,9 +1694,50 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
               {/* Target Type Selection */}
               {selectedPlatform && !selectedTargetType && (
                 <>
-                  <p style={{ textAlign: 'center', color: '#999', marginBottom: '20px', fontSize: '0.95rem' }}>
-                    {t.selectTargetType || 'Select the appropriate target type below.'}
-                  </p>
+                  {/* Target Type Selection Hint */}
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    marginBottom: '20px',
+                    padding: '12px 16px',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255, 255, 255, 0.05)'
+                  }}>
+                    <svg 
+                      width="18" 
+                      height="18" 
+                      viewBox="0 0 24 24" 
+                      fill="none"
+                      style={{
+                        filter: 'drop-shadow(0 0 4px rgba(96, 165, 250, 0.3))'
+                      }}
+                    >
+                      <path 
+                        d="M19 9L12 15L5 9" 
+                        stroke="url(#arrowGradient2)" 
+                        strokeWidth="2.5" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                      <defs>
+                        <linearGradient id="arrowGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#60a5fa" />
+                          <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <span style={{ 
+                      color: '#999', 
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      letterSpacing: '0.2px'
+                    }}>
+                      {t.selectTargetType || 'Select the appropriate target type below'}
+                    </span>
+                  </div>
                   {selectedPlatform === 'instagram' && (t as any).instagramTargets && Object.entries((t as any).instagramTargets).map(([key, value]) => (
                     <button key={key} className="payment-wallet-option payment-network-option" onClick={() => setSelectedTargetType(key)}>
                       <span style={{ fontSize: '1.2rem', marginRight: '10px' }}>{targetTypeIcons[key] || '📍'}</span>
@@ -1423,7 +1820,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                     </button>
                   ))}
                   <button className="payment-back-btn" onClick={() => setSelectedPlatform(null)}>
-                    ← Back to Platforms
+                    ← {t.singleReportBackToPlatforms}
                   </button>
                 </>
               )}
@@ -1453,14 +1850,14 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                         </svg>
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ color: '#666', fontSize: '0.75rem', margin: 0 }}>Platform</p>
+                        <p style={{ color: '#666', fontSize: '0.75rem', margin: 0 }}>{t.singleReportPlatformLabel}</p>
                         <p style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>
                           {platforms.find(p => p.id === selectedPlatform)?.name}
                         </p>
                       </div>
                     </div>
                     <div style={{ borderTop: '1px solid rgba(59, 130, 246, 0.1)', paddingTop: '12px', marginTop: '12px' }}>
-                      <p style={{ color: '#666', fontSize: '0.75rem', margin: '0 0 4px 0' }}>Target Type</p>
+                      <p style={{ color: '#666', fontSize: '0.75rem', margin: '0 0 4px 0' }}>{t.singleReportTargetTypeLabel}</p>
                       <p style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600, margin: 0, textTransform: 'capitalize' }}>
                         {selectedTargetType.replace('_', ' ')}
                       </p>
@@ -1471,7 +1868,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                       marginTop: '16px',
                       textAlign: 'center'
                     }}>
-                      <p style={{ color: '#666', fontSize: '0.75rem', margin: '0 0 4px 0' }}>Total Amount</p>
+                      <p style={{ color: '#666', fontSize: '0.75rem', margin: '0 0 4px 0' }}>{t.singleReportTotalAmount}</p>
                       <p style={{ color: '#3b82f6', fontSize: '2rem', fontWeight: 700, margin: 0 }}>
                         {t.singleReportPrice || '$99.99'}
                       </p>
@@ -1481,19 +1878,22 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                     className="pay-btn primary-action nowpayments-trigger" 
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '12px' }} 
                     onClick={() => {
-                      setIsSingleReportPayment(true); // Mark this as single report payment
+                      setIsSingleBanPayment(true); // Mark this as single ban payment
+                      currentPackageTypeRef.current = 'single'; // Update ref immediately
                       setShowSingleReportModal(false);
                       // Small delay to ensure modal closes before opening crypto select
-                      setTimeout(() => setShowCryptoSelect(true), 100);
+                      setTimeout(() => {
+                        setShowCryptoSelect(true);
+                      }, 100);
                     }}
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
                     </svg>
-                    <span>Proceed to Payment</span>
+                    <span>{t.singleReportProceedToPayment}</span>
                   </button>
                   <button className="payment-back-btn" onClick={() => setSelectedTargetType(null)}>
-                    ← Back to Target Types
+                    ← {t.singleReportBackToTargetTypes}
                   </button>
                 </>
               )}
@@ -1512,11 +1912,11 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                 </svg>
               </div>
-              <h2 className="payment-modal-title">Close Payment?</h2>
+              <h2 className="payment-modal-title">{t.paymentCloseTitle}</h2>
             </div>
             <div className="payment-modal-body">
               <p style={{ textAlign: 'center', color: '#999', marginBottom: '24px', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                Your payment is still pending. If you close this window, you'll need to start over.
+                {t.paymentCloseDesc}
               </p>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button 
@@ -1529,7 +1929,7 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                   }}
                   onClick={() => setShowCloseConfirm(false)}
                 >
-                  Continue Payment
+                  {t.paymentContinue}
                 </button>
                 <button 
                   className="pay-btn" 
@@ -1541,7 +1941,64 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency }) => {
                   }}
                   onClick={closePaymentModal}
                 >
-                  Close Anyway
+                  {t.paymentCloseAnyway}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Payment Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="payment-modal-overlay" style={{ zIndex: 10002 }} onClick={() => setShowCancelConfirm(false)}>
+          <div className="payment-modal-container" style={{ maxWidth: '400px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="payment-modal-header">
+              <div className="payment-modal-icon" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+              </div>
+              <h2 className="payment-modal-title">{t.paymentCancelConfirmTitle}</h2>
+            </div>
+            <div className="payment-modal-body">
+              <p style={{ textAlign: 'center', color: '#999', marginBottom: '24px', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                {t.paymentCancelConfirmDesc}
+              </p>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  className="pay-btn" 
+                  style={{ 
+                    flex: 1, 
+                    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    fontSize: '0.95rem',
+                    padding: '12px 20px'
+                  }}
+                  onClick={() => setShowCancelConfirm(false)}
+                >
+                  {t.paymentCancelKeep}
+                </button>
+                <button 
+                  className="pay-btn" 
+                  style={{ 
+                    flex: 1, 
+                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                    fontSize: '0.95rem',
+                    padding: '12px 20px'
+                  }}
+                  onClick={() => {
+                    if (selectedCrypto) {
+                      const packageType = isSingleBanPayment ? 'single' : 'full';
+                      cancelPendingPayment(selectedCrypto.id, selectedNetwork?.id || null, packageType);
+                      setShowCancelConfirm(false);
+                      closePaymentModal();
+                      
+                      // Dispatch custom event to notify Transactions modal
+                      window.dispatchEvent(new Event('paymentCancelled'));
+                    }
+                  }}
+                >
+                  {t.paymentCancelConfirm}
                 </button>
               </div>
             </div>

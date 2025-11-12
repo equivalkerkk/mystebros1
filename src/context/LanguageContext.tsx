@@ -28,8 +28,14 @@ const defaultExchangeRates: ExchangeRates = {
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language] = useState<Language>('en'); // Fixed to English only
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(defaultExchangeRates);
+
+  // Language setter kept for compatibility but does nothing
+  const setLanguage = (lang: Language) => {
+    // No-op: Language is fixed to English
+    console.log('⚠️ Language switching is disabled. Using English only.');
+  };
 
   useEffect(() => {
     // Fetch live exchange rates

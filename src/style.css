@@ -2927,10 +2927,10 @@ body > [class*="backdrop"] {
     }
 }
 
-/* Hide navbar when payment modal is open */
-body:has(.payment-modal-overlay) .navbar {
-    opacity: 0 !important;
-    pointer-events: none !important;
+/* Hide navbar and welcome banner when payment modal is open */
+body:has(.payment-modal-overlay) .navbar,
+body:has(.payment-modal-overlay) .welcome-banner {
+    display: none !important;
 }
 
 /* Auth Modal Styles */

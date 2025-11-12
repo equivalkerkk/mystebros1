@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface MyReportsProps {
   onClose: () => void;
@@ -6,6 +7,7 @@ interface MyReportsProps {
 }
 
 export const MyReports: React.FC<MyReportsProps> = ({ onClose }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
 
   return (
@@ -19,7 +21,7 @@ export const MyReports: React.FC<MyReportsProps> = ({ onClose }) => {
             </svg>
           </div>
           <h2 className="payment-modal-title">
-            My Reports
+            {t.myReportsTitle}
           </h2>
           <button className="payment-modal-close" onClick={onClose}>
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -63,7 +65,7 @@ export const MyReports: React.FC<MyReportsProps> = ({ onClose }) => {
                 }
               }}
             >
-              ⏳ Pending
+              ⏳ {t.myReportsPending}
             </button>
             <button
               onClick={() => setActiveTab('completed')}
@@ -90,7 +92,7 @@ export const MyReports: React.FC<MyReportsProps> = ({ onClose }) => {
                 }
               }}
             >
-              ✅ Completed
+              ✅ {t.myReportsCompleted}
             </button>
           </div>
 
@@ -102,9 +104,9 @@ export const MyReports: React.FC<MyReportsProps> = ({ onClose }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 style={{ color: '#f3f4f6', fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>No Pending Reports</h3>
+              <h3 style={{ color: '#f3f4f6', fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>{t.myReportsNoPending}</h3>
               <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                You don't have any pending reports yet.
+                {t.myReportsNoPendingDesc}
               </p>
             </div>
           )}
@@ -117,9 +119,9 @@ export const MyReports: React.FC<MyReportsProps> = ({ onClose }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 style={{ color: '#f3f4f6', fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>No Completed Reports</h3>
+              <h3 style={{ color: '#f3f4f6', fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>{t.myReportsNoCompleted}</h3>
               <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                You don't have any completed reports yet.
+                {t.myReportsNoCompletedDesc}
               </p>
             </div>
           )}
