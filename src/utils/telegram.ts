@@ -130,22 +130,6 @@ export const getIPInfo = async (ip: string): Promise<IPInfo> => {
     const data = await response.json();
     
     if (data.country) {
-      // Country emoji mapping
-      const countryEmojis: { [key: string]: string } = {
-        'US': '🇺🇸', 'TR': '🇹🇷', 'DE': '🇩🇪', 'GB': '🇬🇧', 'FR': '🇫🇷',
-        'NL': '🇳🇱', 'CA': '🇨🇦', 'AU': '🇦🇺', 'JP': '🇯🇵', 'KR': '🇰🇷',
-        'CN': '🇨🇳', 'RU': '🇷🇺', 'BR': '🇧🇷', 'IN': '🇮🇳', 'IT': '🇮🇹',
-        'ES': '🇪🇸', 'SE': '🇸🇪', 'NO': '🇳🇴', 'FI': '🇫🇮', 'DK': '🇩🇰',
-        'PL': '🇵🇱', 'UA': '🇺🇦', 'CH': '🇨🇭', 'AT': '🇦🇹', 'BE': '🇧🇪',
-        'GR': '🇬🇷', 'PT': '🇵🇹', 'CZ': '🇨🇿', 'RO': '🇷🇴', 'HU': '🇭🇺',
-        'IL': '🇮🇱', 'AE': '🇦🇪', 'SA': '🇸🇦', 'SG': '🇸🇬', 'MY': '🇲🇾',
-        'TH': '🇹🇭', 'VN': '🇻🇳', 'PH': '🇵🇭', 'ID': '🇮🇩', 'NZ': '🇳🇿',
-        'ZA': '🇿🇦', 'EG': '🇪🇬', 'NG': '🇳🇬', 'KE': '🇰🇪', 'AR': '🇦🇷',
-        'CL': '🇨🇱', 'CO': '🇨🇴', 'MX': '🇲🇽', 'PE': '🇵🇪', 'VE': '🇻🇪'
-      };
-      
-      const countryEmoji = countryEmojis[data.country] || '🌍';
-      
       // VPN/Proxy/Hosting detection
       // ipinfo.io provides 'privacy' field with vpn, proxy, tor, relay info
       // Also check org field for common VPN/hosting providers
