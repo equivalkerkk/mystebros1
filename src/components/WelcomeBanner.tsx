@@ -38,7 +38,7 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, usern
         gap: '4px',
         fontSize: '0.75rem',
         color: '#e0e0e0',
-        lineHeight: '1.3',
+        lineHeight: '1',
         textAlign: 'center',
         flexWrap: 'nowrap',
         overflow: 'hidden'
@@ -51,9 +51,10 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, usern
           flexWrap: 'nowrap',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
-          textOverflow: 'ellipsis'
+          textOverflow: 'ellipsis',
+          lineHeight: '1'
         }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1' }}>
             {t.welcomeHey} <strong style={{ color: '#a855f7' }}>{displayName}</strong>, {isFirstVisit ? t.welcomeFirst : t.welcomeBack}
             {!hasChangedName && (
               <>
@@ -70,7 +71,8 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ displayName, usern
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     touchAction: 'manipulation',
-                    display: 'inline'
+                    display: 'inline',
+                    lineHeight: '1'
                   }}
                 >
                   {t.welcomeClickHere}
