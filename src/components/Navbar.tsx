@@ -38,17 +38,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   displayName: propDisplayName,
   nameChangeCount = 0
 }) => {
-  const { language, setLanguage, t } = useLanguage();
-  const [isLangOpen, setIsLangOpen] = useState(false);
+  const { language, t } = useLanguage();
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLiveBansOpen, setIsLiveBansOpen] = useState(false);
   const [username, setUsername] = useState('User');
   const [displayName, setDisplayName] = useState('User');
-  const langRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const liveBansRef = useRef<HTMLDivElement>(null);
 
-  const currentLang = languages.find(l => l.code === language) || languages[0];
+
 
   // Load username from localStorage on mount and when authenticated changes
   useEffect(() => {
@@ -82,9 +81,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (langRef.current && !langRef.current.contains(event.target as Node)) {
-        setIsLangOpen(false);
-      }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
       }
@@ -97,10 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLanguageSelect = (code: string) => {
-    setLanguage(code as Language);
-    setIsLangOpen(false);
-  };
+
 
   return (
     <nav className="navbar">

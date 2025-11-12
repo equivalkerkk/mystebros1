@@ -7,7 +7,7 @@ import { CanvasBackground } from './CanvasBackground';
 interface AuthModalProps {}
 
 export const AuthModal: React.FC<AuthModalProps> = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
   const [showCredentials, setShowCredentials] = useState(false);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [copied, setCopied] = useState(false);
@@ -15,7 +15,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [isLangOpen, setIsLangOpen] = useState(false);
+
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -30,7 +30,7 @@ export const AuthModal: React.FC<AuthModalProps> = () => {
     { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
   ];
 
-  const currentLang = languages.find(l => l.code === language) || languages[0];
+
 
   const generateRandomString = (length: number): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
