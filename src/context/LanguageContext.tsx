@@ -32,7 +32,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(defaultExchangeRates);
 
   // Language setter kept for compatibility but does nothing
-  const setLanguage = (lang: Language) => {
+  const setLanguage = () => {
     // No-op: Language is fixed to English
     console.log('⚠️ Language switching is disabled. Using English only.');
   };
