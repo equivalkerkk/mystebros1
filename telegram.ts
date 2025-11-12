@@ -124,22 +124,59 @@ export const getUserIP = async (): Promise<string | undefined> => {
 // Get IP geolocation and VPN detection
 export const getIPInfo = async (ip: string): Promise<IPInfo> => {
   try {
-    // Using vpnapi.io for VPN detection (free, unlimited, no token needed)
-    const vpnResponse = await fetch(`https://vpnapi.io/api/${ip}`);
-    const vpnData = await vpnResponse.json();
+    // Using ip-api.com with hosting detection (free, reliable)
+    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,isp,org,as,hosting,proxy,mobile`);
+    const data = await response.json();
     
-    if (vpnData.location?.country_code) {
-      // vpnapi.io provides direct VPN/proxy detection
-      const isVPN = vpnData.security?.vpn === true || 
-                    vpnData.security?.proxy === true || 
-                    vpnData.security?.tor === true || 
-                    vpnData.security?.relay === true;
+    if (data.status === 'success') {
+      const org = (data.org || '').toLowerCase();
+      const isp = (data.isp || '').toLowerCase();
+      const asn = (data.as || '').toLowerCase();
+      
+      // Comprehensive VPN/Proxy/Hosting detection
+      const isVPN = data.hosting === true ||  // Datacenter/hosting IP
+                    data.proxy === true ||     // Proxy detected
+                    data.mobile === true ||    // Mobile/residential proxy
+                    // Check organization/ISP names for VPN providers
+                    org.includes('vpn') || isp.includes('vpn') ||
+                    org.includes('proxy') || isp.includes('proxy') ||
+                    org.includes('hosting') || isp.includes('hosting') ||
+                    // Major cloud/hosting providers
+                    org.includes('amazon') || org.includes('aws') || org.includes('ec2') ||
+                    org.includes('google cloud') || org.includes('gcp') ||
+                    org.includes('microsoft azure') || org.includes('azure') ||
+                    org.includes('digitalocean') || org.includes('do-') ||
+                    org.includes('ovh') || org.includes('ovhcloud') ||
+                    org.includes('hetzner') ||
+                    org.includes('linode') ||
+                    org.includes('vultr') ||
+                    org.includes('cloudflare') ||
+                    org.includes('datacamp') ||
+                    org.includes('m247') ||
+                    org.includes('quadranet') ||
+                    org.includes('choopa') ||
+                    org.includes('constant') ||
+                    org.includes('fdcservers') ||
+                    // Popular VPN services
+                    org.includes('nord') || org.includes('nordvpn') ||
+                    org.includes('express') || org.includes('expressvpn') ||
+                    org.includes('surfshark') ||
+                    org.includes('proton') || org.includes('protonvpn') ||
+                    org.includes('mullvad') ||
+                    org.includes('private internet') ||
+                    org.includes('cyberghost') ||
+                    org.includes('ipvanish') ||
+                    org.includes('windscribe') ||
+                    org.includes('purevpn') ||
+                    org.includes('tunnelbear') ||
+                    // ASN-based detection
+                    asn.includes('vpn') || asn.includes('proxy') || asn.includes('hosting');
       
       return {
-        country: vpnData.location.country_code, // Country code (e.g., "NL")
-        countryCode: vpnData.location.country_code,
+        country: data.countryCode, // Country code (e.g., "NL")
+        countryCode: data.countryCode,
         isVPN: isVPN,
-        isp: vpnData.network?.autonomous_system_organization || 'Unknown'
+        isp: data.org || data.isp
       };
     }
     
