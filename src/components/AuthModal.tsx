@@ -206,12 +206,14 @@ Created: ${new Date().toLocaleString()}
             <button
               onClick={() => setIsLoginMode(false)}
               className={`auth-tab ${!isLoginMode ? 'active' : ''}`}
+              style={{ touchAction: 'manipulation', userSelect: 'none' }}
             >
               {t.tabCreateAccount}
             </button>
             <button
               onClick={() => setIsLoginMode(true)}
               className={`auth-tab ${isLoginMode ? 'active' : ''}`}
+              style={{ touchAction: 'manipulation', userSelect: 'none' }}
             >
               {t.tabLogin}
             </button>
@@ -254,7 +256,8 @@ Created: ${new Date().toLocaleString()}
                     borderRadius: '8px',
                     padding: '12px 16px',
                     color: '#fff',
-                    fontSize: '0.95rem'
+                    fontSize: '16px',
+                    touchAction: 'manipulation'
                   }}
                   placeholder={t.usernamePlaceholder}
                   required
@@ -281,7 +284,8 @@ Created: ${new Date().toLocaleString()}
                     borderRadius: '8px',
                     padding: '12px 16px',
                     color: '#fff',
-                    fontSize: '0.95rem'
+                    fontSize: '16px',
+                    touchAction: 'manipulation'
                   }}
                   placeholder={t.passwordPlaceholder}
                   required

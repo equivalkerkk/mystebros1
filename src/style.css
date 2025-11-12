@@ -3006,6 +3006,8 @@ body:has(.payment-modal-overlay) .welcome-banner {
     justify-content: center;
     padding: 20px;
     animation: fadeIn 0.3s ease-out;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .auth-modal-container {
@@ -3019,6 +3021,8 @@ body:has(.payment-modal-overlay) .welcome-banner {
     animation: slideUp 0.4s ease-out;
     position: relative;
     z-index: 10001;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .credentials-modal {
@@ -3147,6 +3151,10 @@ body:has(.payment-modal-overlay) .welcome-banner {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     margin-bottom: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .auth-tab::after {
@@ -3196,6 +3204,10 @@ body:has(.payment-modal-overlay) .welcome-banner {
     color: #fff;
     position: relative;
     overflow: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .auth-btn::before {
@@ -3827,5 +3839,33 @@ body:has(.payment-modal-overlay) .welcome-banner {
     .inline-payment-amount {
         font-size: 1.4rem;
     }
+}
+
+/* Prevent zoom on mobile input focus */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+}
+
+/* Additional mobile stability fixes */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+html, body {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+    touch-action: manipulation;
+}
+
+button, a, input, textarea, select {
+    touch-action: manipulation;
 }
 
