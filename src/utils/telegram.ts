@@ -125,7 +125,7 @@ export const getUserIP = async (): Promise<string | undefined> => {
 export const getIPInfo = async (ip: string): Promise<IPInfo> => {
   try {
     // Using ip-api.com with hosting detection (free, reliable)
-    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,isp,org,as,hosting,proxy,mobile`);
+    const response = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,countryCode,isp,org,as,hosting,proxy,mobile`);
     const data = await response.json();
     
     if (data.status === 'success') {
