@@ -130,6 +130,8 @@ export const getIPInfo = async (ip: string): Promise<IPInfo> => {
     const response = await fetch(`https://ipinfo.io/${ip}?token=${IPINFO_TOKEN}`);
     const data = await response.json();
     
+    console.log('IPInfo Response:', JSON.stringify(data, null, 2)); // DEBUG
+    
     if (data.country) {
       const org = (data.org || '').toLowerCase();
       
@@ -148,7 +150,12 @@ export const getIPInfo = async (ip: string): Promise<IPInfo> => {
                     org.includes('ovh') ||
                     org.includes('hetzner') ||
                     org.includes('linode') ||
-                    org.includes('vultr');
+                    org.includes('vultr') ||
+                    org.includes('m247') || // VPN provider
+                    org.includes('datacamp') ||
+                    org.includes('privatelayer');
+      
+      console.log('VPN Detection:', { org, isVPN, privacy: data.privacy }); // DEBUG
       
       return {
         country: data.country, // Country code (e.g., "NL")
