@@ -76,6 +76,8 @@ app.post('/auth/register', (req, res) => {
   const newUser = {
     username,
     password,
+    displayName: username, // Default display name = username
+    nameChangeCount: 0, // Track how many times name has been changed
     createdAt: new Date().toISOString(),
     lastLogin: null
   };
@@ -132,6 +134,8 @@ app.post('/auth/login', (req, res) => {
       token: token,
       user: {
         username: users[userIndex].username,
+        displayName: users[userIndex].displayName || users[userIndex].username,
+        nameChangeCount: users[userIndex].nameChangeCount || 0,
         createdAt: users[userIndex].createdAt,
         lastLogin: users[userIndex].lastLogin
       }
@@ -178,14 +182,75 @@ app.post('/auth/verify', (req, res) => {
     return res.json({ success: false, message: 'Session expired' });
   }
   
+  // Get user's display name
+  const users = getUsers();
+  const user = users.find(u => u.username === session.username);
+  
   console.log(`✅ Session verified: ${session.username}`);
   
   res.json({
     success: true,
     user: {
       username: session.username,
+      displayName: user?.displayName || session.username,
+      nameChangeCount: user?.nameChangeCount || 0,
       loginTime: session.loginTime
     }
+  });
+});
+
+// Update display name endpoint
+app.post('/auth/update-display-name', (req, res) => {
+  const { token, displayName } = req.body;
+  
+  if (!token || !displayName) {
+    return res.json({ success: false, message: 'Missing parameters' });
+  }
+  
+  // Verify session
+  const sessions = getSessions();
+  const session = sessions[token];
+  
+  if (!session) {
+    return res.json({ success: false, message: 'Invalid session' });
+  }
+  
+  // Check if expired
+  if (new Date(session.expiresAt) < new Date()) {
+    delete sessions[token];
+    saveSessions(sessions);
+    return res.json({ success: false, message: 'Session expired' });
+  }
+  
+  // Update display name
+  const users = getUsers();
+  const userIndex = users.findIndex(u => u.username === session.username);
+  
+  if (userIndex === -1) {
+    return res.json({ success: false, message: 'User not found' });
+  }
+  
+  // Check name change limit (3 times)
+  const currentCount = users[userIndex].nameChangeCount || 0;
+  if (currentCount >= 3) {
+    return res.json({ 
+      success: false, 
+      message: 'You have reached the maximum number of name changes (3)' 
+    });
+  }
+  
+  users[userIndex].displayName = displayName.trim();
+  users[userIndex].nameChangeCount = currentCount + 1;
+  saveUsers(users);
+  
+  console.log(`✅ Display name updated: ${session.username} -> ${displayName} (${users[userIndex].nameChangeCount}/3)`);
+  
+  res.json({
+    success: true,
+    message: 'Display name updated',
+    displayName: users[userIndex].displayName,
+    nameChangeCount: users[userIndex].nameChangeCount,
+    remainingChanges: 3 - users[userIndex].nameChangeCount
   });
 });
 
