@@ -30,9 +30,6 @@ function App() {
 
   // Hide navbar and banner on scroll down
   useEffect(() => {
-    // Ensure page starts at top
-    window.scrollTo(0, 0);
-    
     const handleScroll = () => {
       const currentScroll = window.scrollY;
       
@@ -83,6 +80,11 @@ function App() {
       }
       
       setIsLoading(false);
+      
+      // Ensure page starts at top after loading completes
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 100);
     }, 3000);
 
     return () => clearTimeout(loadingTimer);
