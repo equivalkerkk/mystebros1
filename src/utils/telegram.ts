@@ -36,6 +36,16 @@ interface PaymentStatusNotification {
   timestamp: string;
 }
 
+interface PaymentCancelledNotification {
+  username?: string;
+  amount: string;
+  crypto: string;
+  network?: string;
+  paymentId: string;
+  orderDescription: string;
+  timestamp: string;
+}
+
 // Send notification to Telegram
 export const sendTelegramNotification = async (data: LoginNotification): Promise<void> => {
   try {
@@ -282,5 +292,50 @@ ${emoji} <b>Payment Status: ${statusText}</b>
     }
   } catch (error) {
     console.error('Error sending payment status notification:', error);
+  }
+};
+
+// Send payment cancelled notification to Telegram
+export const sendPaymentCancelledNotification = async (data: PaymentCancelledNotification): Promise<void> => {
+  try {
+    const { username, amount, crypto, network, paymentId, orderDescription, timestamp } = data;
+    
+    const emoji = '🗑️';
+    const networkText = network ? ` (${network})` : '';
+    const usernameText = username ? `👤 <b>User:</b> <code>${username}</code>\n` : '';
+    
+    const message = `
+${emoji} <b>Payment Cancelled</b>
+
+${usernameText}💵 <b>Amount:</b> <code>${amount} ${crypto}</code>${networkText}
+📦 <b>Order:</b> ${orderDescription}
+🔑 <b>Payment ID:</b> <code>${paymentId}</code>
+🕒 <b>Time:</b> ${new Date(timestamp).toLocaleString()}
+
+━━━━━━━━━━━━━━━━━━━━
+<i>RektNow Mass Report Panel</i>
+    `.trim();
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML',
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Telegram payment cancelled notification failed:', await response.text());
+    } else {
+      console.log('✅ Payment cancelled notification sent to Telegram');
+    }
+  } catch (error) {
+    console.error('Error sending payment cancelled notification:', error);
   }
 };

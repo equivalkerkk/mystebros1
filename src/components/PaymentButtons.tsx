@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '../context/LanguageContext';
-import { sendPaymentCreatedNotification, sendPaymentStatusNotification } from '../utils/telegram';
+import { sendPaymentCreatedNotification, sendPaymentStatusNotification, sendPaymentCancelledNotification } from '../utils/telegram';
 
 interface PaymentButtonsProps {
   price: string;
@@ -2057,10 +2057,37 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency, select
                     fontSize: '0.95rem',
                     padding: '12px 20px'
                   }}
-                  onClick={() => {
+                  onClick={async () => {
                     if (selectedCrypto) {
                       const packageType = isSingleBanPayment ? 'single' : 'full';
+                      const payment = getPendingPayment(selectedCrypto.id, selectedNetwork?.id || null, packageType);
+                      
+                      // Cancel the payment
                       cancelPendingPayment(selectedCrypto.id, selectedNetwork?.id || null, packageType);
+                      
+                      // Send Telegram notification
+                      if (payment) {
+                        try {
+                          const username = localStorage.getItem('rektnow_auth') 
+                            ? JSON.parse(localStorage.getItem('rektnow_auth')!).username 
+                            : undefined;
+                          
+                          await sendPaymentCancelledNotification({
+                            username,
+                            amount: payment.amount,
+                            crypto: selectedCrypto.symbol,
+                            network: selectedNetwork?.name,
+                            paymentId: payment.paymentId,
+                            orderDescription: packageType === 'single' 
+                              ? `Single Report - ${selectedPlatform || 'Unknown'} ${selectedTargetType || 'target'}` 
+                              : 'RektNow Panel Access',
+                            timestamp: new Date().toISOString()
+                          });
+                        } catch (err) {
+                          console.error('Failed to send cancellation notification:', err);
+                        }
+                      }
+                      
                       setShowCancelConfirm(false);
                       closePaymentModal();
                       

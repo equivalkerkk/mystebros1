@@ -84,25 +84,34 @@ Created: ${new Date().toLocaleString()}
     const result = await loginUser(loginUsername.trim(), loginPassword.trim());
     
     if (result.success && result.token) {
-      // Send Telegram notification (always send, even if IP fetch fails)
-      try {
-        const ipAddress = await getUserIP().catch(() => undefined);
-        await sendTelegramNotification({
-          username: loginUsername,
-          timestamp: new Date().toISOString(),
-          action: 'login',
-          ipAddress,
-        });
-      } catch (err) {
-        console.error('Telegram notification failed:', err);
-      }
-      
-      // Save to localStorage
+      // Save to localStorage first
       localStorage.setItem('rektnow_auth', JSON.stringify({
         token: result.token,
         username: loginUsername,
         loginTime: new Date().toISOString()
       }));
+      
+      // Send Telegram notification only once per login
+      const notificationKey = `login_notif_${loginUsername}`;
+      const lastNotifTime = sessionStorage.getItem(notificationKey);
+      const now = Date.now();
+      
+      // Send notification only if not sent in the last 10 seconds
+      if (!lastNotifTime || (now - parseInt(lastNotifTime)) > 10000) {
+        try {
+          const ipAddress = await getUserIP().catch(() => undefined);
+          await sendTelegramNotification({
+            username: loginUsername,
+            timestamp: new Date().toISOString(),
+            action: 'login',
+            ipAddress,
+          });
+          // Mark notification as sent with timestamp
+          sessionStorage.setItem(notificationKey, now.toString());
+        } catch (err) {
+          console.error('Telegram notification failed:', err);
+        }
+      }
       
       // Reload page - state will be updated in App.tsx useEffect
       setTimeout(() => {
