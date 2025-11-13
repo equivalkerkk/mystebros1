@@ -75,6 +75,50 @@ export const FAQ: React.FC = () => {
             <div className="faq-question">{t.faq9Q}</div>
             <div className="faq-answer">{t.faq9A}</div>
           </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq10Q}</div>
+            <div className="faq-answer">{t.faq10A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq11Q}</div>
+            <div className="faq-answer">{t.faq11A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq12Q}</div>
+            <div className="faq-answer">{t.faq12A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq13Q}</div>
+            <div className="faq-answer">{t.faq13A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq14Q}</div>
+            <div className="faq-answer">{t.faq14A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq15Q}</div>
+            <div className="faq-answer">{t.faq15A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq16Q}</div>
+            <div className="faq-answer">{t.faq16A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq17Q}</div>
+            <div className="faq-answer">{t.faq17A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq18Q}</div>
+            <div className="faq-answer">{t.faq18A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq19Q}</div>
+            <div className="faq-answer">{t.faq19A}</div>
+          </div>
+          <div className="faq-item">
+            <div className="faq-question">{t.faq20Q}</div>
+            <div className="faq-answer">{t.faq20A}</div>
+          </div>
         </div>
       )}
     </div>

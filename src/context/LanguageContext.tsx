@@ -18,13 +18,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 const defaultExchangeRates: ExchangeRates = {
-  USD: 1,
-  TRY: 34.50,
-  EUR: 0.92,
-  RUB: 92.00,
-  SAR: 3.75,
-  CNY: 7.24,
-  INR: 83.12
+  USD: 1
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

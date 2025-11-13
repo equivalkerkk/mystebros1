@@ -937,25 +937,96 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency, select
 
   return (
     <div style={{ listStyle: 'none' }}>
-      <button className="pay-btn primary-action nowpayments-trigger" onClick={handlePayClick}>
-        <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
-        </svg>
-        <span>
-          <span>{t.payBtn}</span> <span className="amount-display">{formatButtonPrice(usdPrice)}</span>
-        </span>
-      </button>
+      <div style={{ marginBottom: '16px' }}>
+        <button className="pay-btn primary-action nowpayments-trigger" onClick={handlePayClick} style={{
+          fontSize: '1.05rem',
+          fontWeight: 700,
+          padding: '16px 32px'
+        }}>
+          <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+          </svg>
+          <span>
+            <span>{t.payBtn}</span> <span className="amount-display">{formatButtonPrice(usdPrice)}</span>
+          </span>
+        </button>
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '4px',
+          marginTop: '10px',
+          padding: '6px 12px',
+          background: 'rgba(34, 197, 94, 0.05)',
+          border: 'none',
+          borderRadius: '6px',
+          fontSize: '0.75rem',
+          color: '#22c55e',
+          opacity: 0.8
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px' }}>↳</span>
+            <span style={{ fontWeight: 400 }}>One-time payment</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px' }}>↳</span>
+            <span style={{ fontWeight: 400 }}>Lifetime panel access</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px' }}>↳</span>
+            <span style={{ fontWeight: 400 }}>Unlimited free reports</span>
+          </div>
+        </div>
+      </div>
       
-      <div style={{ textAlign: 'center', margin: '12px 0', color: '#666', fontSize: '0.875rem' }}>or</div>
+      <div style={{ textAlign: 'center', margin: '16px 0', color: '#666', fontSize: '0.875rem', fontWeight: 600 }}>or</div>
       
-      <button className="pay-btn secondary-action" onClick={() => setShowSingleReportModal(true)}>
-        <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
-        </svg>
-        <span>
-          <span>{t.btnSingleReport}</span> <span className="amount-display">{formatButtonPrice(singleBanPrice)}</span>
-        </span>
-      </button>
+      <div>
+        <button className="pay-btn secondary-action" onClick={() => setShowSingleReportModal(true)} style={{
+          fontSize: '1.05rem',
+          fontWeight: 700,
+          padding: '16px 32px'
+        }}>
+          <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
+          </svg>
+          <span>
+            <span>{t.btnSingleReport}</span> <span className="amount-display">{formatButtonPrice(singleBanPrice)}</span>
+          </span>
+        </button>
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '4px',
+          marginTop: '10px',
+          padding: '6px 12px',
+          background: 'rgba(59, 130, 246, 0.05)',
+          border: 'none',
+          borderRadius: '6px',
+          fontSize: '0.75rem',
+          color: '#3b82f6',
+          opacity: 0.8
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px' }}>↳</span>
+            <span style={{ fontWeight: 400 }}>Price for one successful ban</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px' }}>↳</span>
+            <span style={{ fontWeight: 400 }}>No panel access</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{
+        margin: '24px 0',
+        height: '1px',
+        background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent)'
+      }}></div>
 
       {/* Payment Modal - Connect Wallet Style */}
       {(showCryptoSelect || showNetworkSelect || showPaymentPage || showCardPayment) && (

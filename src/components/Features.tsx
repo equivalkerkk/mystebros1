@@ -86,14 +86,6 @@ export const Features: React.FC = () => {
       )}
 
       <div className="feature">
-        <div className="feature-icon">📨</div>
-        <div className="feature-text">
-          <div className="feature-title">{t.feature2Title}</div>
-          <div className="feature-desc">{t.feature2Desc}</div>
-        </div>
-      </div>
-
-      <div className="feature">
         <div className="feature-icon">🤖</div>
         <div className="feature-text">
           <div className="feature-title">{t.feature3Title}</div>
@@ -106,14 +98,6 @@ export const Features: React.FC = () => {
         <div className="feature-text">
           <div className="feature-title">{t.feature4Title}</div>
           <div className="feature-desc">{t.feature4Desc}</div>
-        </div>
-      </div>
-
-      <div className="feature">
-        <div className="feature-icon">🔄</div>
-        <div className="feature-text">
-          <div className="feature-title">{t.feature5Title}</div>
-          <div className="feature-desc">{t.feature5Desc}</div>
         </div>
       </div>
 

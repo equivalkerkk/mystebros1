@@ -5,7 +5,6 @@ import { Features } from './Features';
 import { PaymentButtons } from './PaymentButtons';
 
 const BASE_PRICE_USD = 299.99;
-const ORIGINAL_PRICE_USD = 599.99;
 
 interface PricingCardProps {
   selectedTransaction?: any;
@@ -13,11 +12,9 @@ interface PricingCardProps {
 }
 
 export const PricingCard: React.FC<PricingCardProps> = ({ selectedTransaction, onTransactionHandled }) => {
-  const { t, currency, convertPrice, formatPrice } = useLanguage();
+  const { t, currency, convertPrice } = useLanguage();
   
   const convertedPrice = convertPrice(BASE_PRICE_USD);
-  const convertedOriginal = convertPrice(ORIGINAL_PRICE_USD);
-  const [whole, decimal] = convertedPrice.split('.');
 
   // Parse subtitle with bold markdown (**text**)
   const parseSubtitle = (text: string) => {
@@ -120,18 +117,6 @@ export const PricingCard: React.FC<PricingCardProps> = ({ selectedTransaction, o
                 `}</style>
               </div>
 
-              <div className="price-section">
-                <div className="original-price">
-                  {currency.symbol}{formatPrice(convertedOriginal)} <span className="discount-badge">55% OFF</span>
-                </div>
-                <div className="price-badge">
-                  <span className="price-currency">{currency.symbol}</span>
-                  <span className="price">{whole}</span>
-                  <span className="price-decimal">.{decimal || '00'}</span>
-                </div>
-                <div className="price-desc">{t.priceDesc}</div>
-              </div>
-
               <FAQ />
 
               <Features />
@@ -157,6 +142,66 @@ export const PricingCard: React.FC<PricingCardProps> = ({ selectedTransaction, o
                 <span className="refund-guarantee-icon">⚡</span>
                 <span>{t.refundInfo}</span>
               </div>
+
+              {/* Footer */}
+              <div style={{
+                textAlign: 'center',
+                marginTop: '32px',
+                paddingTop: '24px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                fontSize: '0.9rem',
+                color: '#888'
+              }}>
+                <span>Made with </span>
+                <span style={{
+                  display: 'inline-block',
+                  animation: 'heartBeat 1.5s ease-in-out infinite',
+                  fontSize: '1.1rem'
+                }}>❤️</span>
+                <span> by </span>
+                <span style={{ fontWeight: 700 }}>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #ec4899, #a855f7)',
+                    backgroundSize: '200% 200%',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'gradientShift 3s ease infinite'
+                  }}>Rekt</span>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #a855f7, #3b82f6)',
+                    backgroundSize: '200% 200%',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'gradientShift 3s ease infinite reverse'
+                  }}>Now</span>
+                </span>
+              </div>
+
+              {/* Animations */}
+              <style>{`
+                @keyframes heartBeat {
+                  0%, 100% {
+                    transform: scale(1) translateY(0);
+                  }
+                  25% {
+                    transform: scale(1.2) translateY(-3px);
+                  }
+                  50% {
+                    transform: scale(1) translateY(0);
+                  }
+                }
+                
+                @keyframes gradientShift {
+                  0%, 100% {
+                    background-position: 0% 50%;
+                  }
+                  50% {
+                    background-position: 100% 50%;
+                  }
+                }
+              `}</style>
     </div>
   );
 };
