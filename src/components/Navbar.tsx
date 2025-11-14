@@ -235,7 +235,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
         <a 
-          href="https://t.me/+IO8aOD3DW6BjYzBh" 
+          href="https://t.me/rektnowlinks" 
           target="_blank" 
           rel="noopener noreferrer" 
           className="social-widget telegram-widget"
