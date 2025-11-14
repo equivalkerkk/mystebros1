@@ -1,0 +1,13 @@
+{
+  "name": "discord-verification-bot",
+  "version": "1.0.0",
+  "description": "RektNow Discord verification bot - runs 24/7",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "node bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  }
+}
