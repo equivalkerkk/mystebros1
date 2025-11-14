@@ -974,9 +974,6 @@ body {
 
 .card-header {
     text-align: center;
-    padding-bottom: 24px;
-    border-bottom: 1px solid #222;
-    margin-bottom: 28px;
 }
 
 .card-title-wrapper {
@@ -2392,8 +2389,10 @@ body > [class*="backdrop"] {
 }
 
 .payment-modal-container {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    border: 1px solid rgba(168, 85, 247, 0.15);
+    background: rgba(26, 26, 26, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
     border-radius: 20px;
     max-width: 400px;
     width: 100%;
@@ -2402,8 +2401,7 @@ body > [class*="backdrop"] {
     display: flex;
     flex-direction: column;
     animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
-                0 0 0 1px rgba(168, 85, 247, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     position: relative !important;
     z-index: 10000000 !important;
     transform: none !important;

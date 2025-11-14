@@ -937,88 +937,163 @@ export const PaymentButtons: React.FC<PaymentButtonsProps> = ({ currency, select
 
   return (
     <div style={{ listStyle: 'none' }}>
-      <div style={{ marginBottom: '16px' }}>
-        <button className="pay-btn primary-action nowpayments-trigger" onClick={handlePayClick} style={{
-          fontSize: '1.05rem',
-          fontWeight: 700,
-          padding: '16px 32px'
+      {/* Payment Options Box */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.03), rgba(59, 130, 246, 0.03))',
+        border: '1px solid rgba(168, 85, 247, 0.15)',
+        borderRadius: '16px',
+        padding: '24px',
+        marginBottom: '24px',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '20px',
+          paddingBottom: '16px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
         }}>
-          <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
-          </svg>
-          <span>
-            <span>{t.payBtn}</span> <span className="amount-display">{formatButtonPrice(usdPrice)}</span>
-          </span>
-        </button>
+          <h3 style={{
+            fontSize: '1.1rem',
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #a855f7, #3b82f6)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginBottom: '6px'
+          }}>Choose Your Plan</h3>
+          <p style={{
+            fontSize: '0.85rem',
+            color: '#888',
+            margin: 0
+          }}>Select the plan that fits your needs</p>
+        </div>
+
+        {/* Panel Access Option */}
+        <div style={{ marginBottom: '16px' }}>
+          <button className="pay-btn primary-action nowpayments-trigger" onClick={handlePayClick} style={{
+            fontSize: '1.05rem',
+            fontWeight: 700,
+            padding: '16px 32px'
+          }}>
+            <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+            </svg>
+            <span>
+              <span>{t.payBtn}</span> <span className="amount-display">{formatButtonPrice(usdPrice)}</span>
+            </span>
+          </button>
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '4px',
+            marginTop: '12px',
+            padding: '12px 16px',
+            background: 'rgba(34, 197, 94, 0.05)',
+            border: '1px solid rgba(34, 197, 94, 0.15)',
+            borderRadius: '8px',
+            fontSize: '0.75rem',
+            color: 'rgba(34, 197, 94, 0.9)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px' }}>↳</span>
+              <span style={{ fontWeight: 400 }}>One-time payment</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px' }}>↳</span>
+              <span style={{ fontWeight: 400 }}>Lifetime panel access</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px' }}>↳</span>
+              <span style={{ fontWeight: 400 }}>Unlimited free reports on all platforms</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Divider */}
         <div style={{ 
+          textAlign: 'center', 
+          margin: '20px 0', 
+          position: 'relative',
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '4px',
-          marginTop: '10px',
-          padding: '6px 12px',
-          background: 'rgba(34, 197, 94, 0.05)',
-          border: 'none',
-          borderRadius: '6px',
-          fontSize: '0.75rem',
-          color: '#22c55e',
-          opacity: 0.8
+          justifyContent: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px' }}>↳</span>
-            <span style={{ fontWeight: 400 }}>One-time payment</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px' }}>↳</span>
-            <span style={{ fontWeight: 400 }}>Lifetime panel access</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px' }}>↳</span>
-            <span style={{ fontWeight: 400 }}>Unlimited free reports</span>
+          <div style={{
+            flex: 1,
+            height: '1px',
+            background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent)'
+          }}></div>
+          <span style={{ 
+            padding: '0 15px', 
+            color: '#666', 
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '1px'
+          }}>or</span>
+          <div style={{
+            flex: 1,
+            height: '1px',
+            background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent)'
+          }}></div>
+        </div>
+        
+        {/* Single Report Option */}
+        <div>
+          <button className="pay-btn secondary-action" onClick={() => setShowSingleReportModal(true)} style={{
+            fontSize: '1.05rem',
+            fontWeight: 700,
+            padding: '16px 32px'
+          }}>
+            <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
+            </svg>
+            <span>
+              <span>{t.btnSingleReport}</span> <span className="amount-display">{formatButtonPrice(singleBanPrice)}</span>
+            </span>
+          </button>
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '4px',
+            marginTop: '12px',
+            padding: '12px 16px',
+            background: 'rgba(59, 130, 246, 0.05)',
+            border: '1px solid rgba(59, 130, 246, 0.15)',
+            borderRadius: '8px',
+            fontSize: '0.75rem',
+            color: 'rgba(59, 130, 246, 0.9)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px' }}>↳</span>
+              <span style={{ fontWeight: 400 }}>Price for one successful ban</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px' }}>↳</span>
+              <span style={{ fontWeight: 400 }}>No panel access</span>
+            </div>
           </div>
         </div>
       </div>
-      
-      <div style={{ textAlign: 'center', margin: '16px 0', color: '#666', fontSize: '0.875rem', fontWeight: 600 }}>or</div>
-      
-      <div>
-        <button className="pay-btn secondary-action" onClick={() => setShowSingleReportModal(true)} style={{
-          fontSize: '1.05rem',
-          fontWeight: 700,
-          padding: '16px 32px'
-        }}>
-          <svg className="icon-svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
-          </svg>
-          <span>
-            <span>{t.btnSingleReport}</span> <span className="amount-display">{formatButtonPrice(singleBanPrice)}</span>
-          </span>
-        </button>
-        <div style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '4px',
-          marginTop: '10px',
-          padding: '6px 12px',
-          background: 'rgba(59, 130, 246, 0.05)',
-          border: 'none',
-          borderRadius: '6px',
-          fontSize: '0.75rem',
-          color: '#3b82f6',
-          opacity: 0.8
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px' }}>↳</span>
-            <span style={{ fontWeight: 400 }}>Price for one successful ban</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px' }}>↳</span>
-            <span style={{ fontWeight: 400 }}>No panel access</span>
-          </div>
-        </div>
+
+      {/* Payment Info - Outside Box */}
+      <div style={{
+        textAlign: 'center',
+        marginTop: '16px',
+        marginBottom: '24px',
+        fontSize: '0.85rem',
+        color: '#888',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px'
+      }}>
+        <svg style={{ width: '16px', height: '16px', opacity: 0.6 }} viewBox="0 0 512 512" fill="currentColor">
+          <path d="M461.2 128H80c-8.84 0-16-7.16-16-16s7.16-16 16-16h384c8.84 0 16-7.16 16-16 0-26.51-21.49-48-48-48H64C28.65 32 0 60.65 0 96v320c0 35.35 28.65 64 64 64h397.2c28.02 0 50.8-21.53 50.8-48V176c0-26.47-22.78-48-50.8-48zM416 336c-17.67 0-32-14.33-32-32s14.33-32 32-32 32 14.33 32 32-14.33 32-32 32z"/>
+        </svg>
+        <span>{t.paymentInfo}</span>
       </div>
 
       {/* Divider */}

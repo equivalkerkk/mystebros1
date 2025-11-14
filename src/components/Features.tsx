@@ -108,6 +108,13 @@ export const Features: React.FC = () => {
           <div className="feature-desc">{t.feature6Desc}</div>
         </div>
       </div>
+
+      {/* Divider */}
+      <div style={{
+        margin: '24px 0',
+        height: '1px',
+        background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent)'
+      }}></div>
     </div>
   );
 };
