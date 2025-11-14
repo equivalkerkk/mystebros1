@@ -263,6 +263,21 @@ app.post('/api/payment-callback', async (req, res) => {
     
     const paymentData = req.body;
     
+    // Verify IPN signature (NOWPayments security)
+    const IPN_SECRET = '6/rGzBKkm+P9YS937qKEFr3B4ynsn4vs';
+    const receivedSignature = req.headers['x-nowpayments-sig'];
+    
+    if (receivedSignature) {
+      const payload = JSON.stringify(req.body);
+      const expectedSignature = crypto.createHmac('sha512', IPN_SECRET).update(payload).digest('hex');
+      
+      if (receivedSignature !== expectedSignature) {
+        console.error('❌ Invalid IPN signature!');
+        return res.status(403).json({ error: 'Invalid signature' });
+      }
+      console.log('✅ IPN signature verified');
+    }
+    
     // Send Telegram notification about payment status change
     try {
       await sendPaymentStatusNotification({
@@ -273,6 +288,7 @@ app.post('/api/payment-callback', async (req, res) => {
         network: paymentData.network || undefined,
         timestamp: new Date().toISOString()
       });
+      console.log('✅ Telegram notification sent for payment:', paymentData.payment_id);
     } catch (notifyError) {
       console.error('Failed to send Telegram notification:', notifyError);
     }
