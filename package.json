@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run backend\" \"vite\"",
+    "dev": "concurrently \"npm run backend\" \"vite\" \"npm run discord-bot\" \"npm run telegram-bot\"",
     "backend": "node backend/server.js",
+    "discord-bot": "node discord-setup-bot/bot.js",
+    "telegram-bot": "node backend/telegram-verify-bot.js",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
